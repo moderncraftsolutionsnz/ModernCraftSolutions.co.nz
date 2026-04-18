@@ -1754,13 +1754,22 @@
   function showPage(pageId) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     const target = document.getElementById('page-' + pageId);
+    
     if (target) {
       target.classList.add('active');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+
     document.querySelectorAll('.nav-links a[data-page]').forEach(a => {
       a.classList.toggle('active', a.dataset.page === pageId);
     });
+
+    // 🔥 ADD THIS (closes mobile menu)
+    const links = document.getElementById('navLinks');
+    if (window.innerWidth <= 900) {
+      links.style.display = 'none';
+    }
+
     return false;
   }
 
