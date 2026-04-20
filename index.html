@@ -1,1384 +1,303 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>ModernCraft Solutions — Design. Develop. Launch. Maintain.</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Outfit:wght@200;300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --black: #080a08;
-      --dark: #0d0f0d;
-      --card: #111411;
-      --border: rgba(255,255,255,0.06);
-      --green: #4ade52;
-      --green-dim: #2a7c2e;
-      --gold: #f5c518;
-      --gold-dim: #a87d0a;
-      --white: #f0f2f0;
-      --muted: #6b7468;
-      --font-display: 'Rajdhani', sans-serif;
-      --font-body: 'Outfit', sans-serif;
-      --font-mono: 'Space Mono', monospace;
-      /* Safe area insets for iPhone notch/Dynamic Island */
-      --safe-top: env(safe-area-inset-top, 0px);
-      --safe-bottom: env(safe-area-inset-bottom, 0px);
-      --safe-left: env(safe-area-inset-left, 0px);
-      --safe-right: env(safe-area-inset-right, 0px);
-    }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    html {
-      scroll-behavior: smooth;
-      /* Prevent iOS bounce causing content to show behind nav */
-      -webkit-overflow-scrolling: touch;
-    }
-
-    body {
-      background: var(--black);
-      color: var(--white);
-      font-family: var(--font-body);
-      font-weight: 300;
-      line-height: 1.6;
-      overflow-x: hidden;
-      /* Prevent iOS elastic scroll from showing white at top */
-      overscroll-behavior: none;
-    }
-
-    /* ─── NOISE OVERLAY ─── */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 9999;
-      opacity: 0.4;
-    }
-
-    /* ─── SCROLLBAR ─── */
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: var(--black); }
-    ::-webkit-scrollbar-thumb { background: var(--green-dim); border-radius: 2px; }
-
-    /* ─── NAV ─── */
-    nav {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 1000;
-      padding: 0 5vw;
-      height: 72px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: var(--black);
-      border-bottom: 1px solid var(--border);
-      transition: height 0.3s ease;
-      -webkit-transform: translateZ(0);
-      transform: translateZ(0);
-      isolation: isolate;
-    }
-
-    /* Covers the area above the nav bar on iOS (status bar / notch area) */
-    nav::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: env(safe-area-inset-top, 0px);
-      background: var(--black);
-      z-index: 1001;
-    }
-
-    .nav-logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      text-decoration: none;
-    }
-
-    .nav-logo img {
-      height: 70px;
-      width: 70px;
-      object-fit: contain;
-    }
-
-    .nav-logo-text {
-      font-family: var(--font-display);
-      font-size: 1.1rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      color: var(--white);
-    }
-
-    .nav-logo-text span { color: var(--green); }
-
-    .nav-links {
-      display: flex;
-      align-items: center;
-      gap: 2.5rem;
-      list-style: none;
-    }
-
-    .nav-links a {
-      font-family: var(--font-display);
-      font-size: 0.85rem;
-      font-weight: 600;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--muted);
-      text-decoration: none;
-      position: relative;
-      transition: color 0.3s;
-    }
-
-    .nav-links a::after {
-      content: '';
-      position: absolute;
-      bottom: -4px; left: 0;
-      width: 0; height: 1px;
-      background: var(--green);
-      transition: width 0.3s ease;
-    }
-
-    .nav-links a:hover { color: var(--white); }
-    .nav-links a:hover::after { width: 100%; }
-
-    .nav-cta {
-      font-family: var(--font-display);
-      font-size: 0.8rem;
-      font-weight: 700;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--black) !important;
-      background: var(--green);
-      padding: 8px 22px;
-      border-radius: 2px;
-      text-decoration: none;
-      transition: all 0.3s ease !important;
-    }
-
-    .nav-cta:hover {
-      background: var(--gold) !important;
-      color: var(--black) !important;
-    }
-
-    .nav-cta::after { display: none !important; }
-
-    .hamburger {
-      display: none;
-      flex-direction: column;
-      gap: 5px;
-      cursor: pointer;
-      padding: 4px;
-      /* Larger tap target for mobile */
-      min-width: 44px;
-      min-height: 44px;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .hamburger span {
-      display: block;
-      width: 24px;
-      height: 2px;
-      background: var(--white);
-      transition: all 0.3s;
-    }
-
-    /* ─── PAGES ─── */
-    .page {
-      display: none;
-      min-height: 100vh;
-      min-height: 100dvh; /* Dynamic viewport height for iOS Safari */
-    }
-
-    .page.active { display: block; }
-
-    /* ─── HERO ─── */
-    #hero {
-      min-height: 100vh;
-      min-height: 100dvh;
-      display: flex;
-      align-items: center;
-      position: relative;
-      overflow: hidden;
-      padding-top: 72px;
-    }
-
-    .hero-grid {
-      position: absolute;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(74,222,82,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(74,222,82,0.04) 1px, transparent 1px);
-      background-size: 60px 60px;
-      animation: gridDrift 20s linear infinite;
-    }
-
-    @keyframes gridDrift {
-      0% { transform: translate(0,0); }
-      100% { transform: translate(60px, 60px); }
-    }
-
-    .hero-glow {
-      position: absolute;
-      width: 700px;
-      height: 700px;
-      border-radius: 50%;
-      filter: blur(120px);
-      pointer-events: none;
-    }
-
-    .hero-glow-green {
-      background: radial-gradient(circle, rgba(74,222,82,0.12) 0%, transparent 70%);
-      top: -200px; right: -100px;
-      animation: glowPulse 4s ease-in-out infinite alternate;
-    }
-
-    .hero-glow-gold {
-      background: radial-gradient(circle, rgba(245,197,24,0.07) 0%, transparent 70%);
-      bottom: -200px; left: -100px;
-      animation: glowPulse 6s ease-in-out infinite alternate-reverse;
-    }
-
-    @keyframes glowPulse {
-      from { opacity: 0.6; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1.05); }
-    }
-
-    .hero-content {
-      position: relative;
-      z-index: 2;
-      padding: 0 5vw;
-      max-width: 1400px;
-      margin: 0 auto;
-      width: 100%;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 4rem;
-      align-items: center;
-    }
-
-    .hero-tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-family: var(--font-mono);
-      font-size: 0.7rem;
-      color: var(--green);
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      margin-bottom: 1.5rem;
-      opacity: 0;
-      animation: fadeUp 0.8s ease 0.2s forwards;
-    }
-
-    .hero-tag::before {
-      content: '';
-      display: block;
-      width: 20px;
-      height: 1px;
-      background: var(--green);
-    }
-
-    .hero-h1 {
-      font-family: var(--font-display);
-      font-size: clamp(3rem, 6vw, 5.5rem);
-      font-weight: 700;
-      line-height: 1;
-      letter-spacing: -0.01em;
-      margin-bottom: 1.5rem;
-      opacity: 0;
-      animation: fadeUp 0.8s ease 0.35s forwards;
-    }
-
-    .hero-h1 .gold { color: var(--gold); }
-    .hero-h1 .green { color: var(--green); }
-
-    .hero-sub {
-      font-size: 1.05rem;
-      color: #8a9088;
-      max-width: 480px;
-      margin-bottom: 2.5rem;
-      line-height: 1.8;
-      opacity: 0;
-      animation: fadeUp 0.8s ease 0.5s forwards;
-    }
-
-    .hero-actions {
-      display: flex;
-      gap: 1rem;
-      flex-wrap: wrap;
-      opacity: 0;
-      animation: fadeUp 0.8s ease 0.65s forwards;
-    }
-
-    .btn-primary {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      font-family: var(--font-display);
-      font-size: 0.85rem;
-      font-weight: 700;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--black);
-      background: linear-gradient(135deg, var(--green), #38c43e);
-      padding: 14px 32px;
-      border-radius: 2px;
-      text-decoration: none;
-      border: none;
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-      transition: all 0.3s ease;
-      /* Better tap target */
-      min-height: 44px;
-    }
-
-    .btn-primary::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, var(--gold), #e6b800);
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-
-    .btn-primary:hover::before { opacity: 1; }
-    .btn-primary span { position: relative; z-index: 1; }
-
-    .btn-secondary {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      font-family: var(--font-display);
-      font-size: 0.85rem;
-      font-weight: 600;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--white);
-      background: transparent;
-      padding: 13px 32px;
-      border-radius: 2px;
-      border: 1px solid rgba(255,255,255,0.15);
-      text-decoration: none;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      min-height: 44px;
-    }
-
-    .btn-secondary:hover {
-      border-color: var(--green);
-      color: var(--green);
-    }
-
-    .hero-visual {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      opacity: 0;
-      animation: fadeIn 1s ease 0.8s forwards;
-    }
-
-    .hero-logo-wrap {
-      position: relative;
-      width: 500px;
-      height: 500px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .hero-logo-ring {
-      position: absolute;
-      border-radius: 50%;
-      border: 1px solid;
-      animation: ringRotate linear infinite;
-      pointer-events: none;
-    }
-
-    .ring-1 {
-      inset: 0;
-      border-color: rgba(74,222,82,0.18);
-      border-style: dashed;
-      animation-duration: 22s;
-    }
-
-    .ring-2 {
-      inset: 30px;
-      border-color: rgba(245,197,24,0.14);
-      animation-duration: 34s;
-      animation-direction: reverse;
-    }
-
-    .ring-3 {
-      inset: 62px;
-      border-color: rgba(74,222,82,0.08);
-      animation-duration: 50s;
-    }
-
-    @keyframes ringRotate {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-
-    .ring-dot {
-      position: absolute;
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--green);
-      top: -3.5px;
-      left: 50%;
-      margin-left: -3.5px;
-      box-shadow: 0 0 12px var(--green), 0 0 4px var(--green);
-    }
-
-    .ring-dot-gold {
-      background: var(--gold);
-      box-shadow: 0 0 12px var(--gold), 0 0 4px var(--gold);
-    }
-
-    .ring-dot-sm {
-      width: 5px;
-      height: 5px;
-      top: -2.5px;
-      margin-left: -2.5px;
-    }
-
-    .hero-logo-img {
-      width: 320px;
-      height: 320px;
-      object-fit: contain;
-      position: relative;
-      z-index: 2;
-    }
-
-    .hero-stats {
-      display: flex;
-      gap: 2rem;
-      margin-top: 3rem;
-      padding-top: 2rem;
-      border-top: 1px solid var(--border);
-      opacity: 0;
-      animation: fadeUp 0.8s ease 0.85s forwards;
-    }
-
-    .stat-item { text-align: left; }
-
-    .stat-num {
-      font-family: var(--font-display);
-      font-size: 2rem;
-      font-weight: 700;
-      color: var(--gold);
-      display: block;
-      line-height: 1;
-    }
-
-    .stat-label {
-      font-size: 0.75rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-    }
-
-    /* ─── SECTION COMMON ─── */
-    section {
-      padding: 100px 5vw;
-      max-width: 1400px;
-      margin: 0 auto;
-    }
-
-    .section-tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-family: var(--font-mono);
-      font-size: 0.7rem;
-      color: var(--green);
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      margin-bottom: 1rem;
-    }
-
-    .section-tag::before {
-      content: '';
-      display: block;
-      width: 20px;
-      height: 1px;
-      background: var(--green);
-    }
-
-    .section-h2 {
-      font-family: var(--font-display);
-      font-size: clamp(2rem, 4vw, 3.5rem);
-      font-weight: 700;
-      line-height: 1.05;
-      margin-bottom: 1rem;
-      letter-spacing: -0.01em;
-    }
-
-    .section-h2 .accent { color: var(--gold); }
-
-    .section-lead {
-      font-size: 1rem;
-      color: #8a9088;
-      max-width: 540px;
-      line-height: 1.8;
-    }
-
-    /* ─── SERVICES ─── */
-    .services-header {
-      text-align: center;
-      margin-bottom: 4rem;
-    }
-
-    .services-header .section-lead { margin: 0 auto; }
-
-    .services-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 1.5px;
-      background: var(--border);
-      border: 1px solid var(--border);
-    }
-
-    .service-card {
-      background: var(--card);
-      padding: 2.5rem;
-      position: relative;
-      overflow: hidden;
-      transition: all 0.4s ease;
-      cursor: default;
-    }
-
-    .service-card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(74,222,82,0.04), transparent);
-      opacity: 0;
-      transition: opacity 0.4s;
-    }
-
-    .service-card:hover::before { opacity: 1; }
-
-    .service-card::after {
-      content: '';
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, var(--green), var(--gold));
-      transform: scaleX(0);
-      transform-origin: left;
-      transition: transform 0.4s ease;
-    }
-
-    .service-card:hover::after { transform: scaleX(1); }
-
-    .service-icon {
-      width: 48px;
-      height: 48px;
-      margin-bottom: 1.5rem;
-      color: var(--green);
-    }
-
-    .service-num {
-      position: absolute;
-      top: 2rem;
-      right: 2rem;
-      font-family: var(--font-mono);
-      font-size: 0.7rem;
-      color: rgba(255,255,255,0.08);
-      font-weight: 700;
-    }
-
-    .service-title {
-      font-family: var(--font-display);
-      font-size: 1.4rem;
-      font-weight: 700;
-      letter-spacing: 0.05em;
-      margin-bottom: 0.75rem;
-      color: var(--white);
-    }
-
-    .service-desc {
-      font-size: 0.9rem;
-      color: var(--muted);
-      line-height: 1.7;
-      margin-bottom: 1.5rem;
-    }
-
-    .service-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .service-list li {
-      font-size: 0.8rem;
-      color: #5a6058;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .service-list li::before {
-      content: '';
-      display: block;
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      background: var(--green);
-      flex-shrink: 0;
-    }
-
-    /* ─── PROCESS ─── */
-    .process-wrap {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 5rem;
-      align-items: center;
-    }
-
-    .process-steps {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-    }
-
-    .process-step {
-      display: flex;
-      gap: 1.5rem;
-      padding: 1.5rem 0;
-      border-bottom: 1px solid var(--border);
-      position: relative;
-      cursor: default;
-      transition: all 0.3s;
-    }
-
-    .process-step:hover .step-content { opacity: 1; }
-
-    .step-num {
-      font-family: var(--font-mono);
-      font-size: 0.65rem;
-      color: var(--green);
-      letter-spacing: 0.1em;
-      padding-top: 4px;
-      flex-shrink: 0;
-    }
-
-    .step-title {
-      font-family: var(--font-display);
-      font-size: 1.1rem;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-      margin-bottom: 0.4rem;
-      transition: color 0.3s;
-    }
-
-    .process-step:hover .step-title { color: var(--green); }
-
-    .step-desc {
-      font-size: 0.85rem;
-      color: var(--muted);
-      line-height: 1.6;
-    }
-
-    .process-visual {
-      position: relative;
-      height: 500px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .process-hex {
-      position: absolute;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .hex-shape {
-      width: 80px;
-      height: 80px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-      font-family: var(--font-display);
-      font-weight: 700;
-      font-size: 1rem;
-      transition: all 0.3s;
-    }
-
-    .hex-shape:hover {
-      background: var(--green);
-      color: var(--black);
-    }
-
-    /* ─── PRICING ─── */
-    .pricing-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1.5px;
-      background: var(--border);
-      border: 1px solid var(--border);
-      margin-top: 3rem;
-    }
-
-    .pricing-card {
-      background: var(--card);
-      padding: 2.5rem;
-      position: relative;
-      transition: all 0.4s;
-    }
-
-    .pricing-card.featured {
-      background: linear-gradient(180deg, #0f1a10 0%, var(--card) 100%);
-    }
-
-    .featured-badge {
-      display: inline-block;
-      font-family: var(--font-mono);
-      font-size: 0.6rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--black);
-      background: var(--gold);
-      padding: 4px 12px;
-      margin-bottom: 1.5rem;
-    }
-
-    .plan-name {
-      font-family: var(--font-display);
-      font-size: 1.5rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      margin-bottom: 0.5rem;
-    }
-
-    .plan-price {
-      font-family: var(--font-display);
-      font-size: 3rem;
-      font-weight: 700;
-      color: var(--green);
-      line-height: 1;
-      margin: 1rem 0;
-    }
-
-    .plan-price sup {
-      font-size: 1.2rem;
-      vertical-align: super;
-    }
-
-    .plan-period {
-      font-size: 0.75rem;
-      color: var(--muted);
-      margin-bottom: 1.5rem;
-    }
-
-    .plan-features {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-      margin-bottom: 2rem;
-    }
-
-    .plan-features li {
-      font-size: 0.88rem;
-      color: #7a8078;
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-    }
-
-    .plan-features li .check {
-      color: var(--green);
-      flex-shrink: 0;
-      margin-top: 2px;
-    }
-
-    .plan-features li.muted { opacity: 0.4; }
-
-    /* ─── ABOUT ─── */
-    .about-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 5rem;
-      align-items: center;
-    }
-
-    .about-visual {
-      position: relative;
-      height: 520px;
-    }
-
-    /* iOS Safari fix: use a wrapper that clips instead of the frame itself */
-    .about-img-frame {
-      position: absolute;
-      inset: 0;
-      background: var(--card);
-      border: 1px solid var(--border);
-      /* overflow:hidden alone causes iOS zoom bug — use isolation instead */
-      isolation: isolate;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      /* Clip without triggering iOS zoom */
-      clip-path: inset(0);
-    }
-
-    /* iOS fix: wrap the image in a separate clipping container */
-    .about-img-clip {
-      position: absolute;
-      inset: 0;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .about-logo-large {
-      /* Fixed dimensions instead of percentage-based to prevent iOS zoom */
-      width: 100%;
-      height: 100%;
-      max-width: 600px;
-      max-height: 520px;
-      object-fit: cover;
-      object-position: center;
-      opacity: 0.9;
-      filter: drop-shadow(0 0 60px rgba(74,222,82,0.25));
-      /* Prevent iOS from treating this as a scalable element */
-      -webkit-transform: translateZ(0);
-      transform: translateZ(0);
-      display: block;
-      flex-shrink: 0;
-    }
-
-    .about-accent-line {
-      position: absolute;
-      background: linear-gradient(180deg, var(--green), transparent);
-      width: 2px;
-    }
-
-    .about-accent-1 {
-      height: 80px;
-      top: -40px;
-      left: 40px;
-    }
-
-    .about-accent-2 {
-      height: 80px;
-      bottom: -40px;
-      right: 40px;
-      background: linear-gradient(180deg, transparent, var(--gold));
-    }
-
-    .about-corner {
-      position: absolute;
-      width: 20px;
-      height: 20px;
-    }
-
-    .about-corner-tl {
-      top: -1px; left: -1px;
-      border-top: 2px solid var(--green);
-      border-left: 2px solid var(--green);
-    }
-
-    .about-corner-br {
-      bottom: -1px; right: -1px;
-      border-bottom: 2px solid var(--gold);
-      border-right: 2px solid var(--gold);
-    }
-
-    .about-text h2 {
-      font-family: var(--font-display);
-      font-size: clamp(2rem, 3.5vw, 3rem);
-      font-weight: 700;
-      margin-bottom: 1.5rem;
-      line-height: 1.1;
-    }
-
-    .about-text p {
-      font-size: 0.95rem;
-      color: #7a8078;
-      line-height: 1.9;
-      margin-bottom: 1.5rem;
-    }
-
-    .about-pillars {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-      margin-top: 2rem;
-    }
-
-    .pillar {
-      background: var(--card);
-      border: 1px solid var(--border);
-      padding: 1.25rem;
-      transition: border-color 0.3s;
-    }
-
-    .pillar:hover { border-color: rgba(74,222,82,0.3); }
-
-    .pillar-icon {
-      font-size: 1.25rem;
-      margin-bottom: 0.5rem;
-    }
-
-    .pillar-name {
-      font-family: var(--font-display);
-      font-size: 0.9rem;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-      margin-bottom: 0.25rem;
-    }
-
-    .pillar-desc {
-      font-size: 0.78rem;
-      color: var(--muted);
-    }
-
-    /* ─── CONTACT ─── */
-    .contact-wrap {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 5rem;
-      align-items: start;
-    }
-
-    .contact-info h2 {
-      font-family: var(--font-display);
-      font-size: clamp(2rem, 3.5vw, 3rem);
-      font-weight: 700;
-      margin-bottom: 1rem;
-      line-height: 1.1;
-    }
-
-    .contact-info p {
-      font-size: 0.95rem;
-      color: var(--muted);
-      line-height: 1.8;
-      margin-bottom: 2.5rem;
-    }
-
-    .contact-details {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .contact-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 1rem;
-      padding: 1rem;
-      background: var(--card);
-      border: 1px solid var(--border);
-      transition: border-color 0.3s;
-    }
-
-    .contact-item:hover { border-color: rgba(74,222,82,0.2); }
-
-    .contact-item-icon {
-      width: 36px;
-      height: 36px;
-      background: rgba(74,222,82,0.08);
-      border: 1px solid rgba(74,222,82,0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      color: var(--green);
-      font-size: 1rem;
-    }
-
-    .contact-item-label {
-      font-family: var(--font-mono);
-      font-size: 0.65rem;
-      color: var(--muted);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      margin-bottom: 2px;
-    }
-
-    .contact-item-value {
-      font-size: 0.9rem;
-      color: var(--white);
-    }
-
-    .contact-item-value a {
-      color: inherit;
-      text-decoration: none;
-      font-weight: 500;
-    }
-
-    .contact-item-value a:hover,
-    .contact-item-value a:active {
-      opacity: 0.7;
-    }
-
-    .contact-form {
-      background: var(--card);
-      border: 1px solid var(--border);
-      padding: 2.5rem;
-    }
-
-    .form-group {
-      margin-bottom: 1.25rem;
-    }
-
-    .form-label {
-      display: block;
-      font-family: var(--font-mono);
-      font-size: 0.65rem;
-      color: var(--muted);
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      margin-bottom: 0.5rem;
-    }
-
-    .form-input, .form-select, .form-textarea {
-      width: 100%;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid var(--border);
-      color: var(--white);
-      font-family: var(--font-body);
-      font-size: 0.9rem;
-      /* iOS requires 16px+ to prevent zoom-on-focus */
-      font-size: max(16px, 0.9rem);
-      padding: 12px 16px;
-      outline: none;
-      transition: border-color 0.3s;
-      border-radius: 0;
-      appearance: none;
-      -webkit-appearance: none;
-      /* Prevent iOS from styling inputs */
-      -webkit-border-radius: 0;
-    }
-
-    .form-input:focus, .form-select:focus, .form-textarea:focus {
-      border-color: var(--green);
-    }
-
-    .form-select option { background: var(--dark); }
-
-    .form-textarea {
-      height: 120px;
-      resize: vertical;
-      font-family: var(--font-body);
-    }
-
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-
-    /* ─── FOOTER ─── */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 3rem 5vw;
-      /* Safe area for home bar on iPhone */
-      padding-bottom: calc(3rem + var(--safe-bottom));
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-
-    .footer-brand {
-      font-family: var(--font-display);
-      font-size: 0.85rem;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      color: var(--white);
-    }
-
-    .footer-brand span { color: var(--green); }
-
-    .footer-tagline {
-      font-family: var(--font-mono);
-      font-size: 0.6rem;
-      color: var(--muted);
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      margin-top: 4px;
-    }
-
-    .footer-copy {
-      font-size: 0.78rem;
-      color: var(--muted);
-    }
-
-    .footer-links {
-      display: flex;
-      gap: 1.5rem;
-      list-style: none;
-    }
-
-    .footer-links a {
-      font-family: var(--font-display);
-      font-size: 0.75rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--muted);
-      text-decoration: none;
-      transition: color 0.3s;
-    }
-
-    .footer-links a:hover { color: var(--green); }
-
-    /* ─── MARQUEE ─── */
-    .marquee-wrap {
-      overflow: hidden;
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      padding: 14px 0;
-      background: var(--dark);
-      margin: 0;
-    }
-
-    .marquee-track {
-      display: flex;
-      gap: 3rem;
-      animation: marquee 30s linear infinite;
-      width: max-content;
-    }
-
-    .marquee-item {
-      display: flex;
-      align-items: center;
-      gap: 1.5rem;
-      font-family: var(--font-display);
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--muted);
-      white-space: nowrap;
-    }
-
-    .marquee-dot {
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      background: var(--green);
-    }
-
-    @keyframes marquee {
-      from { transform: translateX(0); }
-      to { transform: translateX(-50%); }
-    }
-
-    /* ─── ANIMATIONS ─── */
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(24px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    /* ─── PAGE HEADER ─── */
-    .page-header {
-      padding-top: 140px;
-      padding-bottom: 60px;
-      padding-left: 5vw;
-      padding-right: 5vw;
-      position: relative;
-      border-bottom: 1px solid var(--border);
-      background: linear-gradient(180deg, rgba(74,222,82,0.03) 0%, transparent 100%);
-    }
-
-    .page-header-inner {
-      max-width: 1400px;
-      margin: 0 auto;
-    }
-
-    /* ─── TECH DOTS ─── */
-    .tech-dots {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 2rem;
-    }
-
-    .tech-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-    }
-
-    .td-green { background: var(--green); }
-    .td-gold { background: var(--gold); }
-    .td-muted { background: var(--muted); }
-
-    /* ─── MOBILE ─── */
-    @media (max-width: 900px) {
-      .nav-links { display: none; }
-      .hamburger { display: flex; }
-
-      /* Mobile nav dropdown needs safe area awareness */
-      .nav-links.mobile-open {
-        display: flex;
-        flex-direction: column;
-        position: fixed;
-        top: 72px;
-        left: 0;
-        right: 0;
-        background: rgba(8,10,8,0.99);
-        padding: 1.5rem 5vw;
-        padding-bottom: calc(1.5rem + var(--safe-bottom));
-        border-bottom: 1px solid rgba(255,255,255,0.06);
-        gap: 1rem;
-        z-index: 999;
-        max-height: calc(100dvh - 72px);
-        overflow-y: auto;
-      }
-
-      .hero-content {
-        grid-template-columns: 1fr;
-        padding-top: 3rem;
-        gap: 3rem;
-      }
-
-      .hero-visual { order: -1; }
-      .hero-logo-wrap { width: 260px; height: 260px; }
-      .hero-logo-img { width: 160px; height: 160px; }
-
-      /* Reduce ring sizes proportionally on mobile */
-      .ring-1 { inset: 0; }
-      .ring-2 { inset: 16px; }
-      .ring-3 { inset: 34px; }
-
-      .about-grid,
-      .contact-wrap,
-      .process-wrap {
-        grid-template-columns: 1fr;
-        gap: 3rem;
-      }
-
-      /* About image mobile fix */
-      .about-visual {
-        height: 280px;
-        /* Force hardware acceleration to prevent iOS repaint issues */
-        -webkit-transform: translateZ(0);
-        transform: translateZ(0);
-      }
-
-      .about-logo-large {
-        /* Use explicit px on mobile to prevent iOS from treating as scalable */
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        object-position: center top;
-      }
-
-      .process-visual { display: none; }
-      .pricing-grid { grid-template-columns: 1fr; }
-
-      /* Better spacing for form on mobile */
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .contact-form {
-        padding: 1.5rem;
-      }
-
-      /* Prevent buttons from being too narrow on mobile */
-      .hero-actions {
-        flex-direction: column;
-      }
-
-      .hero-actions .btn-primary,
-      .hero-actions .btn-secondary {
-        width: 100%;
-        justify-content: center;
-      }
-
-      /* Footer stack on mobile */
-      footer {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1.5rem;
-      }
-
-      .footer-links {
-        flex-wrap: wrap;
-        gap: 1rem;
-      }
-
-      section {
-        padding: 60px 5vw;
-      }
-
-      .page-header {
-        padding-top: 110px;
-      }
-    }
-
-    /* Small phones */
-    @media (max-width: 400px) {
-      .hero-h1 { font-size: 2.6rem; }
-      .hero-logo-wrap { width: 220px; height: 220px; }
-      .hero-logo-img { width: 130px; height: 130px; }
-    }
-
-    /* ─── ACTIVE NAV ─── */
-    .nav-links a.active {
-      color: var(--green);
-    }
-
-    .nav-links a.active::after {
-      width: 100%;
-    }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ModernCraft Solutions — Design. Develop. Launch. Maintain.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Outfit:wght@200;300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --black:#080a08;--dark:#0d0f0d;--card:#111411;
+  --border:rgba(255,255,255,0.06);
+  --green:#4ade52;--green-dim:#2a7c2e;
+  --gold:#f5c518;--gold-dim:#a87d0a;
+  --white:#f0f2f0;--muted:#6b7468;
+  --font-display:'Rajdhani',sans-serif;
+  --font-body:'Outfit',sans-serif;
+  --font-mono:'Space Mono',monospace;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-overflow-scrolling:touch}
+body{background:var(--black);color:var(--white);font-family:var(--font-body);font-weight:300;line-height:1.6;overflow-x:hidden;overscroll-behavior:none;cursor:none}
+@media(max-width:900px){body{cursor:auto}#cur,#cur-ring{display:none!important}}
+
+/* ── CURSOR ── */
+#cur{position:fixed;width:10px;height:10px;background:var(--green);border-radius:50%;pointer-events:none;z-index:99999;transform:translate(-50%,-50%);transition:width .2s,height .2s;mix-blend-mode:difference}
+#cur-ring{position:fixed;width:36px;height:36px;border:1px solid rgba(74,222,82,.5);border-radius:50%;pointer-events:none;z-index:99998;transform:translate(-50%,-50%);transition:transform .45s ease,width .3s,height .3s}
+
+/* ── CANVAS (fixed hero bg) ── */
+#bg-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+
+/* ── NOISE ── */
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.4}
+
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:var(--black)}
+::-webkit-scrollbar-thumb{background:var(--green-dim);border-radius:2px}
+
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:1000;
+  height:72px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 5vw;
+  background:rgba(8,10,8,0);
+  border-bottom:1px solid rgba(74,222,82,0);
+  transition:background .4s,border-color .4s,height .3s;
+  transform:translateZ(0);
+}
+nav::before{content:'';position:fixed;top:0;left:0;right:0;height:var(--safe-top);background:var(--black);z-index:1001}
+nav.scrolled{background:rgba(8,10,8,.97);border-bottom-color:var(--border);height:62px}
+
+.nav-logo{display:flex;align-items:center;gap:12px;text-decoration:none;cursor:none}
+.nav-logo img{height:70px;width:70px;object-fit:contain;filter:drop-shadow(0 0 8px rgba(74,222,82,.4))}
+.nav-logo-text{font-family:var(--font-display);font-size:1.1rem;font-weight:700;letter-spacing:.08em;color:var(--white)}
+.nav-logo-text span{color:var(--green)}
+
+.nav-links{display:flex;align-items:center;gap:2.5rem;list-style:none}
+.nav-links a{font-family:var(--font-display);font-size:.85rem;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);text-decoration:none;position:relative;transition:color .3s;cursor:none}
+.nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;width:0;height:1px;background:var(--green);transition:width .3s}
+.nav-links a:hover,.nav-links a.active{color:var(--white)}
+.nav-links a:hover::after,.nav-links a.active::after{width:100%}
+.nav-cta{font-family:var(--font-display)!important;font-size:.8rem!important;font-weight:700!important;letter-spacing:.15em!important;text-transform:uppercase;color:var(--black)!important;background:var(--green);padding:8px 22px;border-radius:2px;text-decoration:none;transition:background .3s!important;cursor:none}
+.nav-cta:hover{background:var(--gold)!important;color:var(--black)!important}
+.nav-cta::after{display:none!important}
+
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:4px;min-width:44px;min-height:44px;align-items:center;justify-content:center}
+.hamburger span{display:block;width:24px;height:2px;background:var(--white);transition:all .3s;transform-origin:center}
+.hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.hamburger.open span:nth-child(2){opacity:0}
+.hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+/* ── PAGES ── */
+.page{display:none;min-height:100vh;position:relative;z-index:2}
+.page.active{display:block}
+
+/* ── HERO ── */
+#hero{
+  min-height:100vh;min-height:100dvh;
+  display:flex;align-items:center;position:relative;overflow:hidden;
+  padding-top:72px;
+}
+
+/* Animated scan lines */
+#hero::after{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(74,222,82,.012) 3px,rgba(74,222,82,.012) 4px);
+  pointer-events:none;z-index:1;animation:scanLines 8s linear infinite
+}
+@keyframes scanLines{from{background-position:0 0}to{background-position:0 100px}}
+
+.hero-content{position:relative;z-index:3;padding:0 5vw;max-width:1400px;margin:0 auto;width:100%;display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center}
+
+.hero-tag{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:.7rem;color:var(--green);letter-spacing:.2em;text-transform:uppercase;margin-bottom:1.5rem;opacity:0;animation:fadeUp .8s ease .2s forwards}
+.hero-tag::before{content:'';display:block;width:20px;height:1px;background:var(--green)}
+
+.hero-h1{font-family:var(--font-display);font-size:clamp(3rem,6vw,5.5rem);font-weight:700;line-height:1;letter-spacing:-.01em;margin-bottom:1.5rem;opacity:0;animation:fadeUp .8s ease .35s forwards}
+.hero-h1 .gold{color:var(--gold)}
+.hero-h1 .green{color:var(--green)}
+
+.hero-sub{font-size:1.05rem;color:#8a9088;max-width:480px;margin-bottom:2.5rem;line-height:1.8;opacity:0;animation:fadeUp .8s ease .5s forwards}
+.hero-actions{display:flex;gap:1rem;flex-wrap:wrap;opacity:0;animation:fadeUp .8s ease .65s forwards}
+
+.btn-primary{display:inline-flex;align-items:center;gap:10px;font-family:var(--font-display);font-size:.85rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--black);background:linear-gradient(135deg,var(--green),#38c43e);padding:14px 32px;border-radius:2px;text-decoration:none;border:none;cursor:none;position:relative;overflow:hidden;transition:transform .3s;min-height:44px}
+.btn-primary::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--gold),#e6b800);opacity:0;transition:opacity .3s}
+.btn-primary:hover::before{opacity:1}
+.btn-primary:hover{transform:translateY(-2px)}
+.btn-primary span{position:relative;z-index:1}
+.btn-secondary{display:inline-flex;align-items:center;gap:10px;font-family:var(--font-display);font-size:.85rem;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--white);background:transparent;padding:13px 32px;border-radius:2px;border:1px solid rgba(255,255,255,.15);text-decoration:none;cursor:none;transition:border-color .3s,color .3s,transform .3s;min-height:44px}
+.btn-secondary:hover{border-color:var(--green);color:var(--green);transform:translateY(-2px)}
+
+.hero-stats{display:flex;gap:2rem;margin-top:3rem;padding-top:2rem;border-top:1px solid var(--border);opacity:0;animation:fadeUp .8s ease .85s forwards}
+.stat-item{text-align:left}
+.stat-num{font-family:var(--font-display);font-size:2rem;font-weight:700;color:var(--gold);display:block;line-height:1}
+.stat-label{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+
+/* 3D LOGO WRAP */
+.hero-visual{display:flex;justify-content:center;align-items:center;opacity:0;animation:fadeIn 1s ease .8s forwards}
+.hero-logo-wrap{position:relative;width:500px;height:500px;display:flex;align-items:center;justify-content:center}
+#logo-canvas{position:absolute;inset:0;width:100%!important;height:100%!important}
+.hero-logo-img{width:360px;height:360px;object-fit:contain;position:relative;z-index:2;filter:drop-shadow(0 0 30px rgba(74,222,82,.6));animation:logoPulse 3s ease-in-out infinite}
+@keyframes logoPulse{0%,100%{filter:drop-shadow(0 0 20px rgba(74,222,82,.4))}50%{filter:drop-shadow(0 0 50px rgba(74,222,82,.9))}}
+
+/* ── MARQUEE ── */
+.marquee-wrap{overflow:hidden;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:14px 0;background:var(--dark);position:relative;z-index:2}
+.marquee-track{display:flex;gap:3rem;animation:marquee 30s linear infinite;width:max-content}
+.marquee-item{display:flex;align-items:center;gap:1.5rem;font-family:var(--font-display);font-size:.75rem;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.marquee-dot{width:4px;height:4px;border-radius:50%;background:var(--green)}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ── SECTIONS ── */
+section{padding:100px 5vw;max-width:1400px;margin:0 auto;position:relative;z-index:2}
+.section-tag{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:.7rem;color:var(--green);letter-spacing:.2em;text-transform:uppercase;margin-bottom:1rem}
+.section-tag::before{content:'';display:block;width:20px;height:1px;background:var(--green)}
+.section-h2{font-family:var(--font-display);font-size:clamp(2rem,4vw,3.5rem);font-weight:700;line-height:1.05;margin-bottom:1rem;letter-spacing:-.01em}
+.section-h2 .accent{color:var(--gold)}
+.section-lead{font-size:1rem;color:#8a9088;max-width:540px;line-height:1.8}
+
+/* ── SERVICE CARDS ── */
+.services-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5px;background:var(--border);border:1px solid var(--border)}
+.service-card{background:var(--card);padding:2.5rem;position:relative;overflow:hidden;transition:all .4s;cursor:default;transform-style:preserve-3d}
+.service-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(74,222,82,.06),transparent);opacity:0;transition:opacity .4s}
+.service-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--green),var(--gold));transform:scaleX(0);transform-origin:left;transition:transform .4s}
+.service-card:hover::before{opacity:1}
+.service-card:hover::after{transform:scaleX(1)}
+.service-card:hover{background:#141814;transform:translateY(-4px) rotateX(2deg)}
+.service-icon{width:48px;height:48px;margin-bottom:1.5rem;color:var(--green)}
+.service-num{position:absolute;top:2rem;right:2rem;font-family:var(--font-mono);font-size:.7rem;color:rgba(255,255,255,.06);font-weight:700}
+.service-title{font-family:var(--font-display);font-size:1.4rem;font-weight:700;letter-spacing:.05em;margin-bottom:.75rem;color:var(--white);transition:color .3s}
+.service-card:hover .service-title{color:var(--green)}
+.service-desc{font-size:.9rem;color:var(--muted);line-height:1.7;margin-bottom:1.5rem}
+.service-list{list-style:none;display:flex;flex-direction:column;gap:.5rem}
+.service-list li{font-size:.8rem;color:#5a6058;display:flex;align-items:center;gap:8px}
+.service-list li::before{content:'';display:block;width:4px;height:4px;border-radius:50%;background:var(--green);flex-shrink:0}
+
+/* ── PROCESS ── */
+.process-wrap{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center}
+.process-steps{display:flex;flex-direction:column;gap:0}
+.process-step{display:flex;gap:1.5rem;padding:1.5rem 0;border-bottom:1px solid var(--border);transition:all .3s}
+.process-step:hover .step-title{color:var(--green)}
+.step-num{font-family:var(--font-mono);font-size:.65rem;color:var(--green);letter-spacing:.1em;padding-top:4px;flex-shrink:0}
+.step-title{font-family:var(--font-display);font-size:1.1rem;font-weight:600;letter-spacing:.05em;margin-bottom:.4rem;transition:color .3s}
+.step-desc{font-size:.85rem;color:var(--muted);line-height:1.6}
+.process-visual{position:relative;height:500px;display:flex;align-items:center;justify-content:center}
+#process-canvas{width:100%!important;height:100%!important}
+
+/* ── PRICING ── */
+.featured-badge{display:inline-block;font-family:var(--font-mono);font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;color:var(--black);background:var(--gold);padding:4px 12px;margin-bottom:1.5rem}
+.plan-name{font-family:var(--font-display);font-size:1.5rem;font-weight:700;letter-spacing:.08em;margin-bottom:.5rem}
+.plan-price{font-family:var(--font-display);font-size:3rem;font-weight:700;color:var(--green);line-height:1;margin:1rem 0}
+.plan-price sup{font-size:1.2rem;vertical-align:super}
+
+/* ── ABOUT ── */
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center}
+.about-visual{position:relative;height:520px}
+.about-img-frame{position:absolute;inset:0;background:var(--card);border:1px solid var(--border);isolation:isolate;display:flex;align-items:center;justify-content:center;clip-path:inset(0)}
+.about-img-clip{position:absolute;inset:0;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.about-logo-large{width:100%;height:100%;max-width:600px;max-height:520px;object-fit:cover;object-position:center;opacity:.9;filter:drop-shadow(0 0 60px rgba(74,222,82,.25));-webkit-transform:translateZ(0);transform:translateZ(0);display:block;flex-shrink:0}
+.about-accent-line{position:absolute;background:linear-gradient(180deg,var(--green),transparent);width:2px}
+.about-accent-1{height:80px;top:-40px;left:40px}
+.about-accent-2{height:80px;bottom:-40px;right:40px;background:linear-gradient(180deg,transparent,var(--gold))}
+.about-corner{position:absolute;width:20px;height:20px}
+.about-corner-tl{top:-1px;left:-1px;border-top:2px solid var(--green);border-left:2px solid var(--green)}
+.about-corner-br{bottom:-1px;right:-1px;border-bottom:2px solid var(--gold);border-right:2px solid var(--gold)}
+.about-text h2{font-family:var(--font-display);font-size:clamp(2rem,3.5vw,3rem);font-weight:700;margin-bottom:1.5rem;line-height:1.1}
+.about-text p{font-size:.95rem;color:#7a8078;line-height:1.9;margin-bottom:1.5rem}
+.about-pillars{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:2rem}
+.pillar{background:var(--card);border:1px solid var(--border);padding:1.25rem;transition:border-color .3s,transform .3s}
+.pillar:hover{border-color:rgba(74,222,82,.3);transform:translateY(-2px)}
+.pillar-icon{font-size:1.25rem;margin-bottom:.5rem}
+.pillar-name{font-family:var(--font-display);font-size:.9rem;font-weight:600;letter-spacing:.05em;margin-bottom:.25rem}
+.pillar-desc{font-size:.78rem;color:var(--muted)}
+
+/* ── CONTACT ── */
+.contact-wrap{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:start}
+.contact-info h2{font-family:var(--font-display);font-size:clamp(2rem,3.5vw,3rem);font-weight:700;margin-bottom:1rem;line-height:1.1}
+.contact-info p{font-size:.95rem;color:var(--muted);line-height:1.8;margin-bottom:2.5rem}
+.contact-details{display:flex;flex-direction:column;gap:1rem}
+.contact-item{display:flex;align-items:flex-start;gap:1rem;padding:1rem;background:var(--card);border:1px solid var(--border);transition:border-color .3s,transform .3s}
+.contact-item:hover{border-color:rgba(74,222,82,.2);transform:translateX(4px)}
+.contact-item-icon{width:36px;height:36px;background:rgba(74,222,82,.08);border:1px solid rgba(74,222,82,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--green);font-size:1rem}
+.contact-item-label{font-family:var(--font-mono);font-size:.65rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+.contact-item-value{font-size:.9rem;color:var(--white)}
+.contact-item-value a{color:inherit;text-decoration:none;font-weight:500}
+.contact-item-value a:hover{color:var(--green)}
+.contact-form{background:var(--card);border:1px solid var(--border);padding:2.5rem}
+.form-group{margin-bottom:1.25rem}
+.form-label{display:block;font-family:var(--font-mono);font-size:.65rem;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-bottom:.5rem}
+.form-input,.form-select,.form-textarea{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--border);color:var(--white);font-family:var(--font-body);font-size:max(16px,.9rem);padding:12px 16px;outline:none;transition:border-color .3s;border-radius:0;appearance:none;-webkit-appearance:none}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--green)}
+.form-select option{background:var(--dark)}
+.form-textarea{height:120px;resize:vertical;font-family:var(--font-body)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+
+/* ── PAGE HEADER ── */
+.page-header{padding-top:140px;padding-bottom:60px;padding-left:5vw;padding-right:5vw;position:relative;border-bottom:1px solid var(--border);background:linear-gradient(180deg,rgba(74,222,82,.04) 0%,transparent 100%);z-index:2}
+.page-header-inner{max-width:1400px;margin:0 auto}
+.tech-dots{display:flex;gap:6px;margin-bottom:2rem}
+.tech-dot{width:8px;height:8px;border-radius:50%}
+.td-green{background:var(--green)}
+.td-gold{background:var(--gold)}
+.td-muted{background:var(--muted)}
+
+/* ── FOOTER ── */
+footer{border-top:1px solid var(--border);padding:3rem 5vw;padding-bottom:calc(3rem + var(--safe-bottom));display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;position:relative;z-index:2}
+.footer-brand{font-family:var(--font-display);font-size:.85rem;font-weight:600;letter-spacing:.08em;color:var(--white)}
+.footer-brand span{color:var(--green)}
+.footer-tagline{font-family:var(--font-mono);font-size:.6rem;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-top:4px}
+.footer-copy{font-size:.78rem;color:var(--muted)}
+.footer-links{display:flex;gap:1.5rem;list-style:none;flex-wrap:wrap}
+.footer-links a{font-family:var(--font-display);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color .3s;cursor:none}
+.footer-links a:hover{color:var(--green)}
+
+/* ── REVEAL ── */
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .75s ease,transform .75s ease}
+.reveal.vis{opacity:1;transform:translateY(0)}
+.rd1{transition-delay:.1s}.rd2{transition-delay:.2s}.rd3{transition-delay:.3s}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+/* ── MOBILE ── */
+@media(max-width:900px){
+  nav{height:64px}
+  .nav-links{display:none}
+  .hamburger{display:flex}
+  .nav-links.mobile-open{display:flex;flex-direction:column;position:fixed;top:64px;left:0;right:0;background:rgba(8,10,8,.99);padding:1.5rem 5vw;padding-bottom:calc(1.5rem + var(--safe-bottom));border-bottom:1px solid rgba(255,255,255,.06);gap:1rem;z-index:999;max-height:calc(100dvh - 64px);overflow-y:auto}
+  .nav-links.mobile-open a,.nav-links.mobile-open .nav-cta{cursor:auto}
+  #hero{padding-top:64px}
+  .hero-content{grid-template-columns:1fr;padding-top:2rem;gap:2rem}
+  .hero-visual{order:-1}
+  .hero-logo-wrap{width:260px;height:260px}
+  .hero-logo-img{width:130px;height:130px}
+  .about-grid,.contact-wrap,.process-wrap{grid-template-columns:1fr;gap:3rem}
+  .about-visual{height:280px;-webkit-transform:translateZ(0);transform:translateZ(0)}
+  .about-logo-large{object-fit:cover;object-position:center top}
+  .process-visual{height:300px}
+  .hero-actions{flex-direction:column}
+  .hero-actions .btn-primary,.hero-actions .btn-secondary{width:100%;justify-content:center;cursor:auto}
+  footer{flex-direction:column;align-items:flex-start;gap:1.5rem}
+  section{padding:60px 5vw}
+  .page-header{padding-top:100px}
+  .form-grid{grid-template-columns:1fr}
+  .contact-form{padding:1.5rem}
+  .btn-primary,.btn-secondary,.nav-cta{cursor:auto}
+}
+@media(max-width:400px){
+  .hero-h1{font-size:2.6rem}
+  .hero-logo-wrap{width:220px;height:220px}
+  .hero-logo-img{width:110px;height:110px}
+}
+</style>
 </head>
 <body>
 
-<!-- ─── NAV ─── -->
+<div id="cur"></div>
+<div id="cur-ring"></div>
+<canvas id="bg-canvas"></canvas>
+
+<!-- ── NAV ── -->
 <nav id="mainNav">
   <a href="#" class="nav-logo" onclick="showPage('home')">
-      <img src="images/Logo.png" alt="ModernCraft Solutions" onerror="this.style.display='none'">
-      <div>
-        <div class="nav-logo-text">Modern<span>Craft</span></div>
-      </div>
-    </a>
-    <ul class="nav-links" id="navLinks">
-      <li><a href="#" onclick="showPage('home')" data-page="home" class="active">Home</a></li>
-      <li><a href="#" onclick="showPage('services')" data-page="services">Services</a></li>
-      <li><a href="#" onclick="showPage('process')" data-page="process">How It Works</a></li>
-      <li><a href="#" onclick="showPage('pricing')" data-page="pricing">Pricing</a></li>
-      <li><a href="#" onclick="showPage('about')" data-page="about">About</a></li>
-      <li><a href="#" onclick="showPage('contact')" class="nav-cta" data-page="contact">Get Started</a></li>
-    </ul>
-    <div class="hamburger" id="hamburgerBtn" onclick="toggleMobileMenu()">
-      <span></span><span></span><span></span>
-    </div>
+    <img src="images/Logo.png" alt="ModernCraft Solutions" onerror="this.style.display='none'">
+    <div><div class="nav-logo-text">Modern<span>Craft</span></div></div>
+  </a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#" onclick="showPage('home')" data-page="home" class="active">Home</a></li>
+    <li><a href="#" onclick="showPage('services')" data-page="services">Services</a></li>
+    <li><a href="#" onclick="showPage('process')" data-page="process">How It Works</a></li>
+    <li><a href="#" onclick="showPage('pricing')" data-page="pricing">Pricing</a></li>
+    <li><a href="#" onclick="showPage('about')" data-page="about">About</a></li>
+    <li><a href="#" onclick="showPage('contact')" class="nav-cta" data-page="contact">Get Started</a></li>
+  </ul>
+  <div class="hamburger" id="hamburgerBtn" onclick="toggleMobileMenu()"><span></span><span></span><span></span></div>
 </nav>
 
-<!-- ─── HOME PAGE ─── -->
+<!-- ══ HOME ══ -->
 <div id="page-home" class="page active">
-
-  <!-- HERO -->
   <div id="hero">
-    <div class="hero-grid"></div>
-    <div class="hero-glow hero-glow-green"></div>
-    <div class="hero-glow hero-glow-gold"></div>
-
     <div class="hero-content">
       <div class="hero-left">
         <div class="hero-tag">ModernCraft Solutions</div>
@@ -1387,46 +306,26 @@
           are <span class="gold">Online</span><br>
           <span class="green">Are You?</span>
         </h1>
-        <p class="hero-sub">
-          I take local businesses from no website to fully online — design, build, hosting, all handled. Without the $2k+ cost most developers charge. You run your business. I’ll handle the rest.
-        </p>
+        <p class="hero-sub">I take local businesses from no website to fully online — design, build, hosting, all handled. Without the $2k+ cost most developers charge. You run your business. I'll handle the rest.</p>
         <div class="hero-actions">
-          <a href="#" class="btn-primary" onclick="showPage('contact')">
-            <span>Start Your Project</span>
-            <span>→</span>
-          </a>
-          <a href="#" class="btn-secondary" onclick="showPage('services')">
-            View Services
-          </a>
+          <a href="#" class="btn-primary" onclick="showPage('contact')"><span>Start Your Project</span><span>→</span></a>
+          <a href="#" class="btn-secondary" onclick="showPage('services')">View Services</a>
         </div>
         <div class="hero-stats">
-          <div class="stat-item">
-            <span class="stat-num">100%</span>
-            <span class="stat-label">Custom Built</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-num">48h</span>
-            <span class="stat-label">First Draft</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-num">∞</span>
-            <span class="stat-label">Ongoing Support</span>
-          </div>
+          <div class="stat-item"><span class="stat-num">100%</span><span class="stat-label">Custom Built</span></div>
+          <div class="stat-item"><span class="stat-num">48h</span><span class="stat-label">First Draft</span></div>
+          <div class="stat-item"><span class="stat-num">∞</span><span class="stat-label">Ongoing Support</span></div>
         </div>
       </div>
-
       <div class="hero-visual">
         <div class="hero-logo-wrap">
-          <div class="hero-logo-ring ring-1"><div class="ring-dot"></div></div>
-          <div class="hero-logo-ring ring-2"><div class="ring-dot ring-dot-gold"></div></div>
-          <div class="hero-logo-ring ring-3"><div class="ring-dot ring-dot-sm"></div></div>
-          <img src="images/Logo.png" alt="ModernCraft Solutions" class="hero-logo-img">
+          <canvas id="logo-canvas"></canvas>
+          <img src="images/Logo.png" alt="ModernCraft Solutions" class="hero-logo-img" onerror="this.style.opacity='0'">
         </div>
       </div>
     </div>
   </div>
 
-  <!-- MARQUEE -->
   <div class="marquee-wrap">
     <div class="marquee-track">
       <div class="marquee-item"><span class="marquee-dot"></span> Web Design</div>
@@ -1444,46 +343,44 @@
     </div>
   </div>
 
-  <!-- HOME SERVICES TEASER -->
   <section>
-    <div style="text-align:center; margin-bottom: 3rem;">
+    <div style="text-align:center;margin-bottom:3rem;" class="reveal">
       <div class="section-tag">What I Do</div>
       <h2 class="section-h2">Everything Your Business <span class="accent">Needs Online</span></h2>
     </div>
     <div class="services-grid">
-      <div class="service-card">
+      <div class="service-card reveal">
         <div class="service-num">01</div>
         <svg class="service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="14" rx="2"/><path d="M3 9h18M9 21h6M12 17v4"/></svg>
         <div class="service-title">Web Design</div>
         <p class="service-desc">Bespoke designs that reflect your brand and convert visitors into customers.</p>
       </div>
-      <div class="service-card">
+      <div class="service-card reveal rd1">
         <div class="service-num">02</div>
         <svg class="service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
         <div class="service-title">Development</div>
         <p class="service-desc">Clean, fast, and modern code — built to perform on every device and browser.</p>
       </div>
-      <div class="service-card">
+      <div class="service-card reveal rd2">
         <div class="service-num">03</div>
         <svg class="service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l4 4"/></svg>
         <div class="service-title">Hosting & Domains</div>
         <p class="service-desc">Your website deployed with your own custom domain — fast, reliable, and built to perform.</p>
       </div>
-      <div class="service-card">
+      <div class="service-card reveal rd3">
         <div class="service-num">04</div>
         <svg class="service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0112 2a8 8 0 018 8.2c0 7.3-8 11.8-8 11.8z"/></svg>
         <div class="service-title">Maintain</div>
         <p class="service-desc">Ongoing updates, content changes, and technical support so your site stays fresh.</p>
       </div>
     </div>
-    <div style="text-align:center; margin-top:2.5rem;">
+    <div style="text-align:center;margin-top:2.5rem;" class="reveal">
       <a href="#" class="btn-secondary" onclick="showPage('services')">See Full Services →</a>
     </div>
   </section>
-
 </div>
 
-<!-- ─── SERVICES PAGE ─── -->
+<!-- ══ SERVICES ══ -->
 <div id="page-services" class="page">
   <div class="page-header">
     <div class="page-header-inner">
@@ -1493,62 +390,41 @@
       <p class="section-lead">From concept to launch and beyond — complete digital solutions tailored for local businesses who want to stand out online.</p>
     </div>
   </div>
-
   <section>
     <div class="services-grid">
-      <div class="service-card">
+      <div class="service-card reveal">
         <div class="service-num">01</div>
         <svg class="service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="14" rx="2"/><path d="M3 9h18M9 21h6M12 17v4"/></svg>
         <div class="service-title">Website Design</div>
         <p class="service-desc">Custom, brand-aligned designs that make a powerful first impression and turn visitors into paying customers.</p>
-        <ul class="service-list">
-          <li>Custom UI/UX Design</li>
-          <li>Brand Colour Integration</li>
-          <li>Mobile-First Responsive Layouts</li>
-          <li>Typography & Visual Hierarchy</li>
-        </ul>
+        <ul class="service-list"><li>Custom UI/UX Design</li><li>Brand Colour Integration</li><li>Mobile-First Responsive Layouts</li><li>Typography & Visual Hierarchy</li></ul>
       </div>
-      <div class="service-card">
+      <div class="service-card reveal rd1">
         <div class="service-num">02</div>
         <svg class="service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
         <div class="service-title">Web Development</div>
         <p class="service-desc">Hand-coded, performant websites — no bloated page builders. Fast loading, clean code, and built to last.</p>
-        <ul class="service-list">
-          <li>HTML / CSS / JavaScript</li>
-          <li>Contact Forms & Integrations</li>
-          <li>Performance Optimisation</li>
-        </ul>
+        <ul class="service-list"><li>HTML / CSS / JavaScript</li><li>Contact Forms & Integrations</li><li>Performance Optimisation</li></ul>
       </div>
-      
-      <div class="service-card">
+      <div class="service-card reveal rd2">
         <div class="service-num">04</div>
         <svg class="service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M3 12h2M19 12h2M12 3v2M12 19v2"/><path d="M5.64 5.64l1.41 1.41M16.95 16.95l1.41 1.41M5.64 18.36l1.41-1.41M16.95 7.05l1.41-1.41"/></svg>
         <div class="service-title">Custom Domain Setup</div>
         <p class="service-desc">Your business gets a professional domain name configured and connected. yourname.co.nz — exactly how it should be.</p>
-        <ul class="service-list">
-          <li>Domain Registration</li>
-          <li>DNS Configuration</li>
-          <li>Email Forwarding</li>
-        </ul>
+        <ul class="service-list"><li>Domain Registration</li><li>DNS Configuration</li><li>Email Forwarding</li></ul>
       </div>
-
-      <div class="service-card">
+      <div class="service-card reveal rd3">
         <div class="service-num">06</div>
         <svg class="service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
         <div class="service-title">Ongoing Maintenance</div>
         <p class="service-desc">Content updates, security checks, and technical support — I'll keep your site running perfectly, month after month.</p>
-        <ul class="service-list">
-          <li>Frequent Content Updates</li>
-          <li>Security Monitoring</li>
-          <li>Performance Reports</li>
-          <li>Priority Support</li>
-        </ul>
+        <ul class="service-list"><li>Frequent Content Updates</li><li>Security Monitoring</li><li>Performance Reports</li><li>Priority Support</li></ul>
       </div>
     </div>
   </section>
 </div>
 
-<!-- ─── PROCESS PAGE ─── -->
+<!-- ══ PROCESS ══ -->
 <div id="page-process" class="page">
   <div class="page-header">
     <div class="page-header-inner">
@@ -1558,80 +434,22 @@
       <p class="section-lead">A streamlined, transparent process designed to get your business online fast — with zero technical headaches on your end.</p>
     </div>
   </div>
-
   <section>
     <div class="process-wrap">
       <div class="process-steps">
-        <div class="process-step">
-          <div class="step-num">01</div>
-          <div>
-            <div class="step-title">Discovery</div>
-            <p class="step-desc">I start with a free consultation: Learn about your business, your goals, your target customers, and what you want your website to achieve.</p>
-          </div>
-        </div>
-        <div class="process-step">
-          <div class="step-num">02</div>
-          <div>
-            <div class="step-title">Design Concept</div>
-            <p class="step-desc">I deliver an initial design concept. You review it, give feedback, and I refine it until it's exactly right for you.</p>
-          </div>
-        </div>
-        <div class="process-step">
-          <div class="step-num">03</div>
-          <div>
-            <div class="step-title">Development</div>
-            <p class="step-desc">Once design is approved, I build the full site — clean code, fast loading, optimised for mobile and search engines.</p>
-          </div>
-        </div>
-        <div class="process-step">
-          <div class="step-num">04</div>
-          <div>
-            <div class="step-title">Review & Refine</div>
-            <p class="step-desc">You get full access to preview the site. I make any final adjustments before launch.</p>
-          </div>
-        </div>
-        <div class="process-step">
-          <div class="step-num">05</div>
-          <div>
-            <div class="step-title">Launch</div>
-            <p class="step-desc">I deploy your site to our hosting infrastructure, connect your custom domain, and your business goes live on the internet.</p>
-          </div>
-        </div>
-        <div class="process-step" style="border-bottom:none;">
-          <div class="step-num">06</div>
-          <div>
-            <div class="step-title">Ongoing Support</div>
-            <p class="step-desc">I don't disappear after launch. Monthly maintenance keeps your site fresh, fast, and performing. I'm always just a message away.</p>
-          </div>
-        </div>
+        <div class="process-step reveal"><div class="step-num">01</div><div><div class="step-title">Discovery</div><p class="step-desc">I start with a free consultation: Learn about your business, your goals, your target customers, and what you want your website to achieve.</p></div></div>
+        <div class="process-step reveal rd1"><div class="step-num">02</div><div><div class="step-title">Design Concept</div><p class="step-desc">I deliver an initial design concept. You review it, give feedback, and I refine it until it's exactly right for you.</p></div></div>
+        <div class="process-step reveal rd2"><div class="step-num">03</div><div><div class="step-title">Development</div><p class="step-desc">Once design is approved, I build the full site — clean code, fast loading, optimised for mobile and search engines.</p></div></div>
+        <div class="process-step reveal"><div class="step-num">04</div><div><div class="step-title">Review & Refine</div><p class="step-desc">You get full access to preview the site. I make any final adjustments before launch.</p></div></div>
+        <div class="process-step reveal rd1"><div class="step-num">05</div><div><div class="step-title">Launch</div><p class="step-desc">I deploy your site to our hosting infrastructure, connect your custom domain, and your business goes live on the internet.</p></div></div>
+        <div class="process-step reveal rd2" style="border-bottom:none"><div class="step-num">06</div><div><div class="step-title">Ongoing Support</div><p class="step-desc">I don't disappear after launch. Monthly maintenance keeps your site fresh, fast, and performing. I'm always just a message away.</p></div></div>
       </div>
-      <div class="process-visual">
-        <svg width="360" height="460" viewBox="0 0 360 460" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <line x1="180" y1="30" x2="180" y2="430" stroke="rgba(74,222,82,0.15)" stroke-width="1" stroke-dasharray="4 6"/>
-          <circle cx="180" cy="60" r="28" fill="#111411" stroke="rgba(74,222,82,0.4)" stroke-width="1"/>
-          <text x="180" y="65" text-anchor="middle" font-family="Rajdhani" font-weight="700" font-size="13" fill="#4ade52">01</text>
-          <circle cx="180" cy="140" r="28" fill="#111411" stroke="rgba(74,222,82,0.3)" stroke-width="1"/>
-          <text x="180" y="145" text-anchor="middle" font-family="Rajdhani" font-weight="700" font-size="13" fill="#4ade52">02</text>
-          <circle cx="180" cy="220" r="28" fill="#111411" stroke="rgba(245,197,24,0.4)" stroke-width="1"/>
-          <text x="180" y="225" text-anchor="middle" font-family="Rajdhani" font-weight="700" font-size="13" fill="#f5c518">03</text>
-          <circle cx="180" cy="300" r="28" fill="#111411" stroke="rgba(74,222,82,0.3)" stroke-width="1"/>
-          <text x="180" y="305" text-anchor="middle" font-family="Rajdhani" font-weight="700" font-size="13" fill="#4ade52">04</text>
-          <circle cx="180" cy="380" r="28" fill="#111411" stroke="rgba(245,197,24,0.4)" stroke-width="1"/>
-          <text x="180" y="385" text-anchor="middle" font-family="Rajdhani" font-weight="700" font-size="13" fill="#f5c518">05</text>
-          <line x1="50" y1="60" x2="152" y2="60" stroke="rgba(74,222,82,0.2)" stroke-width="1"/>
-          <line x1="208" y1="140" x2="310" y2="140" stroke="rgba(74,222,82,0.2)" stroke-width="1"/>
-          <line x1="50" y1="220" x2="152" y2="220" stroke="rgba(245,197,24,0.2)" stroke-width="1"/>
-          <line x1="208" y1="300" x2="310" y2="300" stroke="rgba(74,222,82,0.2)" stroke-width="1"/>
-          <line x1="50" y1="380" x2="152" y2="380" stroke="rgba(245,197,24,0.2)" stroke-width="1"/>
-          <circle cx="180" cy="60" r="40" fill="rgba(74,222,82,0.04)"/>
-          <circle cx="180" cy="220" r="40" fill="rgba(245,197,24,0.04)"/>
-        </svg>
-      </div>
+      <div class="process-visual reveal"><canvas id="process-canvas"></canvas></div>
     </div>
   </section>
 </div>
 
-<!-- ─── PRICING PAGE ─── -->
+<!-- ══ PRICING ══ -->
 <div id="page-pricing" class="page">
   <div class="page-header">
     <div class="page-header-inner">
@@ -1641,116 +459,75 @@
       <p class="section-lead">No hidden fees. No lock-in contracts. One straightforward price for local businesses who want a great website.</p>
     </div>
   </div>
-
   <section>
-    <div style="max-width: 700px; margin: 0 auto;">
-      <div style="background: var(--card); border: 1px solid rgba(74,222,82,0.25); padding: 3rem; position: relative; overflow: hidden;">
-        <div style="position:absolute; top:0; left:0; right:0; height:2px; background: linear-gradient(90deg, var(--green), var(--gold));"></div>
-
+    <div style="max-width:700px;margin:0 auto;" class="reveal">
+      <div style="background:var(--card);border:1px solid rgba(74,222,82,.25);padding:3rem;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--green),var(--gold));"></div>
         <div class="featured-badge" style="margin-bottom:1.5rem;">Simple &amp; Affordable</div>
-
-        <div class="plan-name" style="font-size:1.8rem; margin-bottom:0.25rem;">ModernCraft Standard</div>
-        <p style="color: var(--muted); font-size:0.9rem; margin-bottom:2rem;">Everything your business needs to launch and grow online.</p>
-
-        <div style="display:flex; align-items:flex-end; gap:2.5rem; padding:1.5rem 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); margin-bottom:2rem; flex-wrap:wrap;">
+        <div class="plan-name" style="font-size:1.8rem;margin-bottom:.25rem;">ModernCraft Standard</div>
+        <p style="color:var(--muted);font-size:.9rem;margin-bottom:2rem;">Everything your business needs to launch and grow online.</p>
+        <div style="display:flex;align-items:flex-end;gap:2.5rem;padding:1.5rem 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:2rem;flex-wrap:wrap;">
           <div>
-            <div style="font-family:var(--font-mono); font-size:0.65rem; color:var(--muted); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:6px;">One-time setup</div>
+            <div style="font-family:var(--font-mono);font-size:.65rem;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px;">One-time setup</div>
             <div class="plan-price" style="margin:0;"><sup>$</sup>300</div>
           </div>
-          <div style="color:var(--muted); font-size:1.2rem; padding-bottom:8px;">+</div>
+          <div style="color:var(--muted);font-size:1.2rem;padding-bottom:8px;">+</div>
           <div>
-            <div style="font-family:var(--font-mono); font-size:0.65rem; color:var(--muted); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:6px;">Monthly maintenance</div>
-            <div style="font-family:var(--font-display); font-size:2.2rem; font-weight:700; color:var(--gold); line-height:1;">$50<span style="font-size:1rem; color:var(--muted);">/mo</span></div>
+            <div style="font-family:var(--font-mono);font-size:.65rem;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px;">Monthly maintenance</div>
+            <div style="font-family:var(--font-display);font-size:2.2rem;font-weight:700;color:var(--gold);line-height:1;">$50<span style="font-size:1rem;color:var(--muted);">/mo</span></div>
           </div>
         </div>
-
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.9rem 3rem; margin-bottom:2.5rem;">
-          <div style="display:flex; align-items:center; gap:10px; font-size:0.9rem; color:#9aab98;">
-            <span style="color:var(--green); font-size:1rem;">✓</span> Custom design system
-          </div>
-          <div style="display:flex; align-items:center; gap:10px; font-size:0.9rem; color:#9aab98;">
-            <span style="color:var(--green); font-size:1rem;">✓</span> Mobile responsive
-          </div>
-          <div style="display:flex; align-items:center; gap:10px; font-size:0.9rem; color:#9aab98;">
-            <span style="color:var(--green); font-size:1rem;">✓</span> Hosting + custom domain
-          </div>
-          <div style="display:flex; align-items:center; gap:10px; font-size:0.9rem; color:#9aab98;">
-            <span style="color:var(--green); font-size:1rem;">✓</span> Contact forms
-          </div>
-          <div style="display:flex; align-items:center; gap:10px; font-size:0.9rem; color:#9aab98;">
-            <span style="color:var(--green); font-size:1rem;">✓</span> Monthly content updates
-          </div>
-          <div style="display:flex; align-items:center; gap:10px; font-size:0.9rem; color:#9aab98;">
-            <span style="color:var(--green); font-size:1rem;">✓</span> Ongoing support
-          </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.9rem 3rem;margin-bottom:2.5rem;">
+          <div style="display:flex;align-items:center;gap:10px;font-size:.9rem;color:#9aab98;"><span style="color:var(--green);font-size:1rem;">✓</span> Custom design system</div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:.9rem;color:#9aab98;"><span style="color:var(--green);font-size:1rem;">✓</span> Mobile responsive</div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:.9rem;color:#9aab98;"><span style="color:var(--green);font-size:1rem;">✓</span> Hosting + custom domain</div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:.9rem;color:#9aab98;"><span style="color:var(--green);font-size:1rem;">✓</span> Contact forms</div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:.9rem;color:#9aab98;"><span style="color:var(--green);font-size:1rem;">✓</span> Monthly content updates</div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:.9rem;color:#9aab98;"><span style="color:var(--green);font-size:1rem;">✓</span> Ongoing support</div>
         </div>
-
-        <div style="display:flex; gap:1rem; flex-wrap:wrap;">
-          <a href="#" class="btn-primary" onclick="showPage('contact')" style="flex:1; justify-content:center;">
-            <span>Enquire Now</span>
-            <span>→</span>
-          </a>
-          <a href="#" class="btn-secondary" onclick="showPage('contact')" style="white-space:nowrap; padding:13px 24px;">
-            Book a Free Call
-          </a>
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+          <a href="#" class="btn-primary" onclick="showPage('contact')" style="flex:1;justify-content:center;"><span>Enquire Now</span><span>→</span></a>
+          <a href="#" class="btn-secondary" onclick="showPage('contact')" style="white-space:nowrap;padding:13px 24px;">Book a Free Call</a>
         </div>
-
-        <p style="text-align:center; font-family:var(--font-mono); font-size:0.65rem; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; margin-top:1.25rem;">
-          No lock-in contracts &nbsp;·&nbsp; No hidden fees
-        </p>
+        <p style="text-align:center;font-family:var(--font-mono);font-size:.65rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:1.25rem;">No lock-in contracts &nbsp;·&nbsp; No hidden fees</p>
       </div>
     </div>
   </section>
   <section>
-    <div style="max-width: 700px; margin: 0 auto;">
-      <div style="background: var(--card); border: 1px solid rgba(245,197,24,0.25); padding: 3rem; position: relative; overflow: hidden;">
-        <div style="position:absolute; top:0; left:0; right:0; height:2px; background: linear-gradient(90deg, var(--gold), var(--green));"></div>
-        <div class="featured-badge" style="margin-bottom:1.5rem; background: var(--green);">Advanced Build</div>
-        <div class="plan-name" style="font-size:1.8rem; margin-bottom:0.25rem;">ModernCraft Complex</div>
-        <p style="color: var(--muted); font-size:0.9rem; margin-bottom:2rem;">For businesses that need more — multiple pages, advanced features, and a bigger online presence.</p>
-        <div style="display:flex; align-items:flex-end; gap:2.5rem; padding:1.5rem 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); margin-bottom:2rem; flex-wrap:wrap;">
+    <div style="max-width:700px;margin:0 auto;" class="reveal">
+      <div style="background:var(--card);border:1px solid rgba(245,197,24,.25);padding:3rem;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--green));"></div>
+        <div class="featured-badge" style="margin-bottom:1.5rem;background:var(--green);">Advanced Build</div>
+        <div class="plan-name" style="font-size:1.8rem;margin-bottom:.25rem;">ModernCraft Complex</div>
+        <p style="color:var(--muted);font-size:.9rem;margin-bottom:2rem;">For businesses that need more — multiple pages, advanced features, and a bigger online presence.</p>
+        <div style="display:flex;align-items:flex-end;gap:2.5rem;padding:1.5rem 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:2rem;flex-wrap:wrap;">
           <div>
-            <div style="font-family:var(--font-mono); font-size:0.65rem; color:var(--muted); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:6px;">One-time setup</div>
+            <div style="font-family:var(--font-mono);font-size:.65rem;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px;">One-time setup</div>
             <div class="plan-price" style="margin:0;"><sup>$</sup>500</div>
           </div>
-          <div style="color:var(--muted); font-size:1.2rem; padding-bottom:8px;">+</div>
+          <div style="color:var(--muted);font-size:1.2rem;padding-bottom:8px;">+</div>
           <div>
-            <div style="font-family:var(--font-mono); font-size:0.65rem; color:var(--muted); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:6px;">Monthly maintenance</div>
-            <div style="font-family:var(--font-display); font-size:2.2rem; font-weight:700; color:var(--gold); line-height:1;">$50<span style="font-size:1rem; color:var(--muted);">/mo</span></div>
+            <div style="font-family:var(--font-mono);font-size:.65rem;color:var(--muted);letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px;">Monthly maintenance</div>
+            <div style="font-family:var(--font-display);font-size:2.2rem;font-weight:700;color:var(--gold);line-height:1;">$50<span style="font-size:1rem;color:var(--muted);">/mo</span></div>
           </div>
         </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.9rem 3rem; margin-bottom:2.5rem;">
-          <div style="display:flex; align-items:center; gap:10px; font-size:0.9rem; color:#9aab98;">
-            <span style="color:var(--green); font-size:1rem;">✓</span> Everything in Standard
-          </div>
-          <div style="display:flex; align-items:center; gap:10px; font-size:0.9rem; color:#9aab98;">
-            <span style="color:var(--green); font-size:1rem;">✓</span> Multiple pages
-          </div>
-          <div style="display:flex; align-items:center; gap:10px; font-size:0.9rem; color:#9aab98;">
-            <span style="color:var(--green); font-size:1rem;">✓</span> Gallery or portfolio
-          </div>
-          <div style="display:flex; align-items:center; gap:10px; font-size:0.9rem; color:#9aab98;">
-            <span style="color:var(--green); font-size:1rem;">✓</span> Priority support
-          </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.9rem 3rem;margin-bottom:2.5rem;">
+          <div style="display:flex;align-items:center;gap:10px;font-size:.9rem;color:#9aab98;"><span style="color:var(--green);font-size:1rem;">✓</span> Everything in Standard</div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:.9rem;color:#9aab98;"><span style="color:var(--green);font-size:1rem;">✓</span> Multiple pages</div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:.9rem;color:#9aab98;"><span style="color:var(--green);font-size:1rem;">✓</span> Gallery or portfolio</div>
+          <div style="display:flex;align-items:center;gap:10px;font-size:.9rem;color:#9aab98;"><span style="color:var(--green);font-size:1rem;">✓</span> Priority support</div>
         </div>
-        <div style="display:flex; gap:1rem; flex-wrap:wrap;">
-          <a href="#" class="btn-primary" onclick="showPage('contact')" style="flex:1; justify-content:center;">
-            <span>Enquire Now</span>
-            <span>→</span>
-          </a>
-          <a href="#" class="btn-secondary" onclick="showPage('contact')" style="white-space:nowrap; padding:13px 24px;">
-            Book a Free Call
-          </a>
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+          <a href="#" class="btn-primary" onclick="showPage('contact')" style="flex:1;justify-content:center;"><span>Enquire Now</span><span>→</span></a>
+          <a href="#" class="btn-secondary" onclick="showPage('contact')" style="white-space:nowrap;padding:13px 24px;">Book a Free Call</a>
         </div>
-        <p style="text-align:center; font-family:var(--font-mono); font-size:0.65rem; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; margin-top:1.25rem;">
-          No lock-in contracts &nbsp;·&nbsp; No hidden fees
-        </p>
+        <p style="text-align:center;font-family:var(--font-mono);font-size:.65rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:1.25rem;">No lock-in contracts &nbsp;·&nbsp; No hidden fees</p>
       </div>
     </div>
   </section>
 </div>
 
-<!-- ─── ABOUT PAGE ─── -->
+<!-- ══ ABOUT ══ -->
 <div id="page-about" class="page">
   <div class="page-header">
     <div class="page-header-inner">
@@ -1759,15 +536,12 @@
       <h1 class="section-h2">Crafting Clean Code, <span class="accent">Delivering Serious Results.</span></h1>
     </div>
   </div>
-
   <section>
     <div class="about-grid">
-      <div class="about-visual">
+      <div class="about-visual reveal">
         <div class="about-img-frame">
-          <!-- Separate clip container prevents iOS Safari zoom bug -->
           <div class="about-img-clip">
-            <img src="images/Fish.jpg" alt="ModernCraft Solutions" class="about-logo-large"
-              onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22><text y=%22.9em%22 font-size=%22120%22>🛠️</text></svg>'">
+            <img src="images/Fish.jpg" alt="ModernCraft Solutions" class="about-logo-large" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 200 200%22><text y=%22.9em%22 font-size=%22120%22>🛠️</text></svg>'">
           </div>
         </div>
         <div class="about-accent-line about-accent-1"></div>
@@ -1775,37 +549,21 @@
         <div class="about-corner about-corner-tl"></div>
         <div class="about-corner about-corner-br"></div>
       </div>
-
       <div class="about-text">
-        <h2><span style="color:var(--white)">The Person Behind your Design.</span></h2>
-        <p>
-          Hi — I'm Seb McMillan, the founder of ModernCraft Solutions. I started this business with one clear goal: to help local businesses present themselves properly online for very little cost compared to most website developers. Not a cookie-cutter template. Not a basic drag-and-drop builder. A real, custom-built digital presence that reflects the quality of your work.
-        </p>
-        <p>
-          I work with businesses to design, build, and launch websites tailored to their brand. I manage the entire process — from initial design through to final domain connection — so you don't have to deal with the technical side.
-        </p>
-        <p>
-          Alongside this, I'm currently in my third year of studying civil engineering, which shapes the way I approach my work — with structure, attention to detail, and a focus on long-term reliability. Every site I build is hosted on fast, dependable infrastructure, giving you a professional online presence you can rely on.
-        </p>
-
+        <h2 class="reveal"><span style="color:var(--white)">The Person Behind your Design.</span></h2>
+        <p class="reveal rd1">Hi — I'm Seb McMillan, the founder of ModernCraft Solutions. I started this business with one clear goal: to help local businesses present themselves properly online for very little cost compared to most website developers. Not a cookie-cutter template. Not a basic drag-and-drop builder. A real, custom-built digital presence that reflects the quality of your work.</p>
+        <p class="reveal rd2">I work with businesses to design, build, and launch websites tailored to their brand. I manage the entire process — from initial design through to final domain connection — so you don't have to deal with the technical side.</p>
+        <p class="reveal rd3">Alongside this, I'm currently in my third year of studying civil engineering, which shapes the way I approach my work — with structure, attention to detail, and a focus on long-term reliability. Every site I build is hosted on fast, dependable infrastructure, giving you a professional online presence you can rely on.</p>
         <div class="about-pillars">
-          <div class="pillar">
-            <div class="pillar-icon">⚡</div>
-            <div class="pillar-name">Fast Delivery</div>
-            <div class="pillar-desc">First draft in 48 hours</div>
-          </div>
-          <div class="pillar">
-            <div class="pillar-icon">🤝</div>
-            <div class="pillar-name">Ongoing Support</div>
-            <div class="pillar-desc">I'm always here</div>
-          </div>
+          <div class="pillar reveal"><div class="pillar-icon">⚡</div><div class="pillar-name">Fast Delivery</div><div class="pillar-desc">First draft in 48 hours</div></div>
+          <div class="pillar reveal rd1"><div class="pillar-icon">🤝</div><div class="pillar-name">Ongoing Support</div><div class="pillar-desc">I'm always here</div></div>
         </div>
       </div>
     </div>
   </section>
 </div>
 
-<!-- ─── CONTACT PAGE ─── -->
+<!-- ══ CONTACT ══ -->
 <div id="page-contact" class="page">
   <div class="page-header">
     <div class="page-header-inner">
@@ -1815,72 +573,29 @@
       <p class="section-lead">Ready to take your business online? Fill in the form and I'll be in touch within 24 hours.</p>
     </div>
   </div>
-
   <section>
     <div class="contact-wrap">
       <div class="contact-info">
-        <h2>Get in<br><span style="color:var(--green)">Touch.</span></h2>
-        <p>Whether you're starting from scratch or looking to upgrade an existing site — I'd love to hear about your business. No pressure, no jargon, just a real conversation about how I can help.</p>
-
+        <h2 class="reveal">Get in<br><span style="color:var(--green)">Touch.</span></h2>
+        <p class="reveal rd1">Whether you're starting from scratch or looking to upgrade an existing site — I'd love to hear about your business. No pressure, no jargon, just a real conversation about how I can help.</p>
         <div class="contact-details">
-          <div class="contact-item">
-            <div class="contact-item-icon">✉</div>
-            <div>
-              <div class="contact-item-label">Email</div>
-              <div class="contact-item-value">modcraft.solutions.nz@gmail.com</div>
-            </div>
-          </div>
-          <div class="contact-item">
-            <div class="contact-item-icon">📍</div>
-            <div>
-              <div class="contact-item-label">Location</div>
-              <div class="contact-item-value">Ashburton, New Zealand</div>
-            </div>
-          </div>
-          <div class="contact-item">
-            <div class="contact-item-icon">⏱</div>
-            <div>
-              <div class="contact-item-label">Response Time</div>
-              <div class="contact-item-value">Within 24 hours</div>
-            </div>
-          </div>
-          <div class="contact-item">
-            <div class="contact-item-icon">📞</div>
-            <div>
-              <div class="contact-item-label">Phone</div>
-              <div class="contact-item-value">
-                <a href="tel:+642108010043">+64 21 080 10043</a>
-              </div>
-            </div>
-          </div>
+          <div class="contact-item reveal"><div class="contact-item-icon">✉</div><div><div class="contact-item-label">Email</div><div class="contact-item-value">modcraft.solutions.nz@gmail.com</div></div></div>
+          <div class="contact-item reveal rd1"><div class="contact-item-icon">📍</div><div><div class="contact-item-label">Location</div><div class="contact-item-value">Ashburton, New Zealand</div></div></div>
+          <div class="contact-item reveal rd2"><div class="contact-item-icon">⏱</div><div><div class="contact-item-label">Response Time</div><div class="contact-item-value">Within 24 hours</div></div></div>
+          <div class="contact-item reveal rd3"><div class="contact-item-icon">📞</div><div><div class="contact-item-label">Phone</div><div class="contact-item-value"><a href="tel:+642108010043">+64 21 080 10043</a></div></div></div>
         </div>
       </div>
-
-      <div class="contact-form">
-        <form action="https://api.web3forms.com/submit" method="POST" onsubmit="handleSubmit(event, this)">
-
+      <div class="contact-form reveal rd1">
+        <form action="https://api.web3forms.com/submit" method="POST" onsubmit="handleSubmit(event,this)">
           <input type="hidden" name="access_key" value="33ebfc52-79b9-4b52-a49c-f546be5a4a3e">
           <input type="hidden" name="subject" value="New Website Enquiry — ModernCraft Solutions">
           <input type="checkbox" name="botcheck" style="display:none;">
-
           <div class="form-grid">
-            <div class="form-group">
-              <label class="form-label">First Name</label>
-              <input type="text" name="first_name" class="form-input" placeholder="John" required>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Last Name</label>
-              <input type="text" name="last_name" class="form-input" placeholder="Smith" required>
-            </div>
+            <div class="form-group"><label class="form-label">First Name</label><input type="text" name="first_name" class="form-input" placeholder="John" required></div>
+            <div class="form-group"><label class="form-label">Last Name</label><input type="text" name="last_name" class="form-input" placeholder="Smith" required></div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Business Name</label>
-            <input type="text" name="business_name" class="form-input" placeholder="Smith's Plumbing Co.">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Email Address</label>
-            <input type="email" name="email" class="form-input" placeholder="john@smithsplumbing.co.nz" required>
-          </div>
+          <div class="form-group"><label class="form-label">Business Name</label><input type="text" name="business_name" class="form-input" placeholder="Smith's Plumbing Co."></div>
+          <div class="form-group"><label class="form-label">Email Address</label><input type="email" name="email" class="form-input" placeholder="john@smithsplumbing.co.nz" required></div>
           <div class="form-group">
             <label class="form-label">Which Plan Are You Interested In?</label>
             <select name="plan" class="form-select">
@@ -1890,25 +605,16 @@
               <option>Negotiated - Fit for you</option>
             </select>
           </div>
-          <div class="form-group">
-            <label class="form-label">Tell Us About Your Business</label>
-            <textarea name="message" class="form-textarea" placeholder="What does your business do? Do you have any existing website or branding? What do you want to achieve?" required></textarea>
-          </div>
-
-          <button type="submit" class="btn-primary" style="width:100%; justify-content:center;">
-            <span>Send Message</span>
-            <span>→</span>
-          </button>
-
-          <p id="form-status" style="text-align:center; font-family:var(--font-mono); font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; margin-top:1rem; min-height:1em;"></p>
-
+          <div class="form-group"><label class="form-label">Tell Us About Your Business</label><textarea name="message" class="form-textarea" placeholder="What does your business do? Do you have any existing website or branding? What do you want to achieve?" required></textarea></div>
+          <button type="submit" class="btn-primary" style="width:100%;justify-content:center;"><span>Send Message</span><span>→</span></button>
+          <p id="form-status" style="text-align:center;font-family:var(--font-mono);font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;margin-top:1rem;min-height:1em;"></p>
         </form>
       </div>
     </div>
   </section>
 </div>
 
-<!-- ─── FOOTER ─── -->
+<!-- ══ FOOTER ══ -->
 <footer>
   <div>
     <div class="footer-brand">Modern<span>Craft</span> Solutions</div>
@@ -1924,90 +630,416 @@
   <div class="footer-copy">© 2026 ModernCraft Solutions. All rights reserved.</div>
 </footer>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-  // ─── PAGE NAVIGATION ───
-  function showPage(pageId) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    const target = document.getElementById('page-' + pageId);
-    
-    if (target) {
-      target.classList.add('active');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+// ══════════════════════════════════════════
+//  CURSOR
+// ══════════════════════════════════════════
+const $cur = document.getElementById('cur');
+const $ring = document.getElementById('cur-ring');
+let mx=0,my=0,rx=0,ry=0;
+if($cur){
+  document.addEventListener('mousemove',e=>{
+    mx=e.clientX; my=e.clientY;
+    $cur.style.left=mx+'px'; $cur.style.top=my+'px';
+  });
+  (function animRing(){
+    rx+=(mx-rx)*.1; ry+=(my-ry)*.1;
+    $ring.style.left=rx+'px'; $ring.style.top=ry+'px';
+    requestAnimationFrame(animRing);
+  })();
+  document.querySelectorAll('a,button,.service-card,.pillar,.contact-item').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{$cur.style.width='20px';$cur.style.height='20px';$ring.style.width='52px';$ring.style.height='52px'});
+    el.addEventListener('mouseleave',()=>{$cur.style.width='10px';$cur.style.height='10px';$ring.style.width='36px';$ring.style.height='36px'});
+  });
+}
 
-    document.querySelectorAll('.nav-links a[data-page]').forEach(a => {
-      a.classList.toggle('active', a.dataset.page === pageId);
-    });
+// ══════════════════════════════════════════
+//  BACKGROUND THREE.JS — full page particle field
+// ══════════════════════════════════════════
+(function initBG(){
+  const isMobile = window.innerWidth < 768;
+  const canvas = document.getElementById('bg-canvas');
+  const renderer = new THREE.WebGLRenderer({canvas,antialias:false,alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));
+  renderer.setClearColor(0x000000,0);
 
-    // Close mobile menu
-    closeMobileMenu();
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,.1,1000);
+  camera.position.z = 40;
 
-    return false;
+  function resize(){
+    renderer.setSize(window.innerWidth,window.innerHeight,false);
+    camera.aspect=window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
   }
+  resize();
+  window.addEventListener('resize',resize);
 
-  // ─── SCROLL NAV ───
-  window.addEventListener('scroll', () => {
-    document.getElementById('mainNav').classList.toggle('scrolled', window.scrollY > 50);
+  // ── PARTICLE CLOUD ──
+  const count = isMobile ? 600 : 1400;
+  const pGeo = new THREE.BufferGeometry();
+  const pos = new Float32Array(count*3);
+  const col = new Float32Array(count*3);
+  const siz = new Float32Array(count);
+
+  for(let i=0;i<count;i++){
+    // Spread in a large sphere
+    const r = 30+Math.random()*80;
+    const theta = Math.random()*Math.PI*2;
+    const phi = Math.acos(2*Math.random()-1);
+    pos[i*3]   = r*Math.sin(phi)*Math.cos(theta);
+    pos[i*3+1] = r*Math.sin(phi)*Math.sin(theta);
+    pos[i*3+2] = r*Math.cos(phi);
+
+    const t = Math.random();
+    if(t>.95){       // bright green sparks
+      col[i*3]=.29;col[i*3+1]=.87;col[i*3+2]=.32;siz[i]=2.8+Math.random()*2;
+    } else if(t>.88){ // gold accent
+      col[i*3]=.96;col[i*3+1]=.77;col[i*3+2]=.1;siz[i]=1.6;
+    } else if(t>.7){  // dim green
+      col[i*3]=.1;col[i*3+1]=.28;col[i*3+2]=.12;siz[i]=1;
+    } else {          // near-invisible dark
+      const v=.04+Math.random()*.08;col[i*3]=v;col[i*3+1]=v*1.1;col[i*3+2]=v*.8;siz[i]=.5;
+    }
+  }
+  pGeo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  pGeo.setAttribute('color',new THREE.BufferAttribute(col,3));
+  pGeo.setAttribute('size',new THREE.BufferAttribute(siz,1));
+
+  const pMat = new THREE.PointsMaterial({size:1.2,vertexColors:true,transparent:true,opacity:.9,sizeAttenuation:true,depthWrite:false});
+  const particles = new THREE.Points(pGeo,pMat);
+  scene.add(particles);
+
+  // ── WIRING / CONNECTIONS ──
+  // Create thin connection lines between close-ish particles for a "network" look
+  const lineMat = new THREE.LineBasicMaterial({color:0x4ade52,transparent:true,opacity:.04});
+  const lineGeo = new THREE.BufferGeometry();
+  const linePoints = [];
+  const pts3 = pGeo.attributes.position.array;
+  // Sample a subset for perf
+  for(let i=0;i<Math.min(count,200);i++){
+    for(let j=i+1;j<Math.min(count,200);j++){
+      const dx=pts3[i*3]-pts3[j*3],dy=pts3[i*3+1]-pts3[j*3+1],dz=pts3[i*3+2]-pts3[j*3+2];
+      const dist=Math.sqrt(dx*dx+dy*dy+dz*dz);
+      if(dist<18){
+        linePoints.push(pts3[i*3],pts3[i*3+1],pts3[i*3+2]);
+        linePoints.push(pts3[j*3],pts3[j*3+1],pts3[j*3+2]);
+      }
+    }
+  }
+  lineGeo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(linePoints),3));
+  scene.add(new THREE.LineSegments(lineGeo,lineMat));
+
+  // ── FLOATING WIREFRAME OBJECTS ──
+  const objs = [];
+  const geoms = [
+    new THREE.IcosahedronGeometry(5,1),
+    new THREE.OctahedronGeometry(4,1),
+    new THREE.TorusGeometry(6,.08,8,50),
+    new THREE.TorusKnotGeometry(4,0.6,60,8),
+  ];
+  const wMat = new THREE.MeshBasicMaterial({color:0x4ade52,wireframe:true,transparent:true,opacity:.06});
+  const wMat2 = new THREE.MeshBasicMaterial({color:0xf5c518,wireframe:true,transparent:true,opacity:.04});
+  const positions3d = [
+    [-30,15,-20],[28,-12,-25],[0,25,-30],[-15,-20,-15],[35,5,-35]
+  ];
+  geoms.forEach((g,i)=>{
+    const m = new THREE.Mesh(g, i%2===0?wMat:wMat2);
+    const p = positions3d[i]||[0,0,-20];
+    m.position.set(p[0],p[1],p[2]);
+    scene.add(m); objs.push(m);
   });
 
-  // ─── MOBILE MENU ───
-  let menuOpen = false;
+  // ── GRID PLANE ──
+  const gridHelper = new THREE.GridHelper(200,40,0x4ade52,0x4ade52);
+  gridHelper.position.y = -30;
+  gridHelper.material.transparent=true; gridHelper.material.opacity=.03;
+  scene.add(gridHelper);
 
-  function toggleMobileMenu() {
-    menuOpen = !menuOpen;
-    const links = document.getElementById('navLinks');
-    if (menuOpen) {
-      links.classList.add('mobile-open');
-    } else {
-      links.classList.remove('mobile-open');
-      links.style.display = '';
+  let mx2=0,my2=0,frame=0;
+  document.addEventListener('mousemove',e=>{mx2=(e.clientX/window.innerWidth-.5)*2;my2=(e.clientY/window.innerHeight-.5)*2});
+
+  function animate(){
+    requestAnimationFrame(animate); frame++;
+    camera.position.x += (mx2*6 - camera.position.x)*.015;
+    camera.position.y += (-my2*4 - camera.position.y)*.015;
+    camera.lookAt(scene.position);
+
+    particles.rotation.y = frame*.0004;
+    particles.rotation.x = frame*.0001;
+    gridHelper.rotation.y = frame*.0002;
+
+    objs.forEach((o,i)=>{
+      o.rotation.x = frame*.004*(i+1)*.3;
+      o.rotation.y = frame*.006*(i+1)*.4;
+      o.rotation.z = frame*.002*(i+1)*.2;
+      // Pulse opacity
+      const pulse = Math.sin(frame*.03+i)*0.5+0.5;
+      o.material.opacity = (i%2===0?.04:.02)+pulse*.04;
+    });
+
+    // Random spark flicker
+    if(frame%6===0){
+      const idx=Math.floor(Math.random()*count);
+      col[idx*3]=.29;col[idx*3+1]=.87;col[idx*3+2]=.32;
+      pGeo.attributes.color.needsUpdate=true;
     }
+    renderer.render(scene,camera);
   }
+  animate();
+})();
 
-  function closeMobileMenu() {
-    menuOpen = false;
-    const links = document.getElementById('navLinks');
-    links.classList.remove('mobile-open');
-    links.style.display = '';
+// ══════════════════════════════════════════
+//  HERO LOGO — 3D orbit rings
+// ══════════════════════════════════════════
+(function initLogo(){
+  const canvas = document.getElementById('logo-canvas');
+  if(!canvas) return;
+  const renderer = new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.setClearColor(0x000000,0);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(50,1,.1,100);
+  camera.position.z=20;
+
+  function resizeLogo(){
+    const w=canvas.clientWidth,h=canvas.clientHeight;
+    renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix();
   }
+  resizeLogo(); window.addEventListener('resize',resizeLogo);
 
-  // Close menu when tapping outside
-  document.addEventListener('click', function(e) {
-    const nav = document.getElementById('mainNav');
-    if (menuOpen && !nav.contains(e.target)) {
-      closeMobileMenu();
-    }
+  // Rings
+  const ringData = [
+    {r:8, tube:.07, color:0x4ade52, opacity:.7, speedX:.004, speedY:.007, speedZ:.002},
+    {r:10, tube:.05, color:0xf5c518, opacity:.4, speedX:.006, speedY:.003, speedZ:.008},
+    {r:12, tube:.04, color:0x4ade52, opacity:.25, speedX:.002, speedY:.008, speedZ:.004},
+    {r:6,  tube:.06, color:0xf5c518, opacity:.5, speedX:.009, speedY:.002, speedZ:.006},
+  ];
+  const rings = ringData.map(d=>{
+    const geo = new THREE.TorusGeometry(d.r,d.tube,8,80);
+    const mat = new THREE.MeshBasicMaterial({color:d.color,transparent:true,opacity:d.opacity});
+    const mesh = new THREE.Mesh(geo,mat);
+    mesh.userData = d;
+    scene.add(mesh); return mesh;
   });
 
-  // ─── FORM SUBMIT ───
-  async function handleSubmit(e, form) {
-    e.preventDefault();
-    const btn = form.querySelector('button[type="submit"]');
-    const status = document.getElementById('form-status');
+  // Orbiting dots
+  const dotMat  = new THREE.MeshBasicMaterial({color:0x4ade52});
+  const dotMat2 = new THREE.MeshBasicMaterial({color:0xf5c518});
+  const dots = [];
+  [7, 9, 11].forEach((r,i)=>{
+    const dot = new THREE.Mesh(new THREE.SphereGeometry(.25,8,8), i===1?dotMat2:dotMat);
+    dot.userData.r=r; dot.userData.offset=i*(Math.PI*2/3); dot.userData.speed=.02+i*.008;
+    scene.add(dot); dots.push(dot);
+  });
 
-    btn.innerHTML = '<span>Sending…</span>';
-    btn.disabled = true;
+  // Glow sphere at centre
+  const glowGeo = new THREE.SphereGeometry(2.5,16,16);
+  const glowMat = new THREE.MeshBasicMaterial({color:0x4ade52,transparent:true,opacity:.06,wireframe:false});
+  scene.add(new THREE.Mesh(glowGeo,glowMat));
 
-    const data = new FormData(form);
-    const res = await fetch('https://api.web3forms.com/submit', {
-      method: 'POST',
-      body: data
-    });
-    const json = await res.json();
-
-    if (json.success) {
-      btn.innerHTML = '<span>Message Sent ✓</span>';
-      btn.style.background = 'linear-gradient(135deg, #2a7c2e, #1a5c1e)';
-      status.style.color = 'var(--green)';
-      status.textContent = 'Thanks! I\'ll be in touch within 24 hours.';
-      form.reset();
-    } else {
-      btn.innerHTML = '<span>Send Message</span><span>→</span>';
-      btn.disabled = false;
-      status.style.color = '#e05555';
-      status.textContent = 'Something went wrong — please try emailing directly.';
-    }
+  // Particle halo
+  const haloCount=80, hGeo=new THREE.BufferGeometry(), hp=new Float32Array(haloCount*3);
+  for(let i=0;i<haloCount;i++){
+    const a=Math.random()*Math.PI*2,r=5+Math.random()*10;
+    hp[i*3]=Math.cos(a)*r;hp[i*3+1]=(Math.random()-.5)*10;hp[i*3+2]=Math.sin(a)*r;
   }
+  hGeo.setAttribute('position',new THREE.BufferAttribute(hp,3));
+  scene.add(new THREE.Points(hGeo,new THREE.PointsMaterial({color:0x4ade52,size:.18,transparent:true,opacity:.6})));
+
+  let f=0;
+  function draw(){
+    requestAnimationFrame(draw); f++;
+    rings.forEach(r=>{
+      r.rotation.x=f*r.userData.speedX;
+      r.rotation.y=f*r.userData.speedY;
+      r.rotation.z=f*r.userData.speedZ;
+      r.material.opacity=r.userData.opacity*.7+Math.sin(f*.04+r.userData.r)*.3*r.userData.opacity;
+    });
+    dots.forEach(d=>{
+      const a=f*d.userData.speed+d.userData.offset;
+      d.position.x=Math.cos(a)*d.userData.r;
+      d.position.z=Math.sin(a)*d.userData.r;
+      d.position.y=Math.sin(a*1.5)*2;
+    });
+    renderer.render(scene,camera);
+  }
+  draw();
+})();
+
+// ══════════════════════════════════════════
+//  PROCESS 3D — animated node graph
+// ══════════════════════════════════════════
+(function initProcess(){
+  const canvas = document.getElementById('process-canvas');
+  if(!canvas) return;
+  const renderer = new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.setClearColor(0x000000,0);
+  const scene=new THREE.Scene();
+  const camera=new THREE.PerspectiveCamera(50,1,.1,100);
+  camera.position.z=22;
+
+  function resizeP(){const w=canvas.clientWidth,h=canvas.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}
+  resizeP(); window.addEventListener('resize',resizeP);
+
+  // 6 nodes in a vertical line with connections
+  const nodePositions = [
+    [0,9,0],[0,5.4,0],[0,1.8,0],[0,-1.8,0],[0,-5.4,0],[0,-9,0]
+  ];
+  const nodeColors = [0x4ade52,0x4ade52,0xf5c518,0x4ade52,0xf5c518,0x4ade52];
+  const nodes=[], pulses=[];
+
+  nodePositions.forEach(([x,y,z],i)=>{
+    // Outer ring
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(1,.05,8,40),
+      new THREE.MeshBasicMaterial({color:nodeColors[i],transparent:true,opacity:.6})
+    );
+    ring.position.set(x,y,z);
+    scene.add(ring); nodes.push(ring);
+
+    // Centre dot
+    const dot = new THREE.Mesh(
+      new THREE.SphereGeometry(.35,12,12),
+      new THREE.MeshBasicMaterial({color:nodeColors[i],transparent:true,opacity:.9})
+    );
+    dot.position.set(x,y,z);
+    scene.add(dot);
+
+    // Connection line to next
+    if(i<5){
+      const lGeo=new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(x,y-.9,z),
+        new THREE.Vector3(nodePositions[i+1][0],nodePositions[i+1][1]+.9,nodePositions[i+1][2])
+      ]);
+      const lMat=new THREE.LineBasicMaterial({color:0x4ade52,transparent:true,opacity:.2});
+      scene.add(new THREE.Line(lGeo,lMat));
+    }
+
+    // Orbiting small dot per node
+    const pulse=new THREE.Mesh(new THREE.SphereGeometry(.15,6,6),new THREE.MeshBasicMaterial({color:nodeColors[i]}));
+    pulse.userData={cx:x,cy:y,speed:.04+i*.01,offset:i};
+    scene.add(pulse); pulses.push(pulse);
+  });
+
+  // Background hex grid texture feel
+  const bgLineMat=new THREE.LineBasicMaterial({color:0x4ade52,transparent:true,opacity:.05});
+  for(let i=-10;i<=10;i+=3){
+    const g=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(i,-12,0),new THREE.Vector3(i,12,0)]);
+    scene.add(new THREE.Line(g,bgLineMat));
+  }
+
+  let f=0;
+  function draw(){
+    requestAnimationFrame(draw); f++;
+    nodes.forEach((n,i)=>{
+      n.rotation.z=f*.008*(i+1);
+      n.rotation.x=f*.004*(i+1);
+      const pScale=1+Math.sin(f*.06+i)*.15;
+      n.scale.set(pScale,pScale,pScale);
+    });
+    pulses.forEach(p=>{
+      const a=f*p.userData.speed+p.userData.offset;
+      p.position.x=p.userData.cx+Math.cos(a)*2;
+      p.position.y=p.userData.cy+Math.sin(a)*.5;
+      p.position.z=Math.sin(a)*1.5;
+    });
+    scene.rotation.y=Math.sin(f*.008)*.2;
+    renderer.render(scene,camera);
+  }
+  draw();
+})();
+
+// ══════════════════════════════════════════
+//  PAGE NAVIGATION
+// ══════════════════════════════════════════
+function showPage(pageId){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  const target=document.getElementById('page-'+pageId);
+  if(target){target.classList.add('active');window.scrollTo({top:0,behavior:'smooth'})}
+  document.querySelectorAll('.nav-links a[data-page]').forEach(a=>{
+    a.classList.toggle('active',a.dataset.page===pageId);
+  });
+  closeMobileMenu();
+  // Re-trigger reveals on page switch
+  setTimeout(()=>{
+    document.querySelectorAll('#page-'+pageId+' .reveal').forEach(el=>{
+      el.classList.remove('vis');
+      revObs.observe(el);
+    });
+  },50);
+  return false;
+}
+
+window.addEventListener('scroll',()=>document.getElementById('mainNav').classList.toggle('scrolled',window.scrollY>50));
+
+let menuOpen=false;
+function toggleMobileMenu(){
+  menuOpen=!menuOpen;
+  const links=document.getElementById('navLinks');
+  if(menuOpen)links.classList.add('mobile-open');
+  else{links.classList.remove('mobile-open');links.style.display=''}
+}
+function closeMobileMenu(){
+  menuOpen=false;
+  const links=document.getElementById('navLinks');
+  links.classList.remove('mobile-open');
+  links.style.display='';
+}
+document.addEventListener('click',e=>{
+  if(menuOpen&&!document.getElementById('mainNav').contains(e.target))closeMobileMenu();
+});
+
+// ══════════════════════════════════════════
+//  SCROLL REVEAL
+// ══════════════════════════════════════════
+const revObs = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');revObs.unobserve(e.target)}});
+},{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>revObs.observe(el));
+
+// ══════════════════════════════════════════
+//  FORM
+// ══════════════════════════════════════════
+async function handleSubmit(e,form){
+  e.preventDefault();
+  const btn=form.querySelector('button[type="submit"]');
+  const status=document.getElementById('form-status');
+  btn.innerHTML='<span>Sending…</span>'; btn.disabled=true;
+  const data=new FormData(form);
+  const res=await fetch('https://api.web3forms.com/submit',{method:'POST',body:data});
+  const json=await res.json();
+  if(json.success){
+    btn.innerHTML='<span>Message Sent ✓</span>';
+    btn.style.background='linear-gradient(135deg,#2a7c2e,#1a5c1e)';
+    status.style.color='var(--green)';
+    status.textContent="Thanks! I'll be in touch within 24 hours.";
+    form.reset();
+  } else {
+    btn.innerHTML='<span>Send Message</span><span>→</span>';
+    btn.disabled=false;
+    status.style.color='#e05555';
+    status.textContent='Something went wrong — please try emailing directly.';
+  }
+}
+
+// ══════════════════════════════════════════
+//  SERVICE CARDS 3D TILT
+// ══════════════════════════════════════════
+document.querySelectorAll('.service-card').forEach(card=>{
+  card.addEventListener('mousemove',e=>{
+    const rect=card.getBoundingClientRect();
+    const x=(e.clientX-rect.left)/rect.width-.5;
+    const y=(e.clientY-rect.top)/rect.height-.5;
+    card.style.transform=`translateY(-4px) rotateX(${-y*10}deg) rotateY(${x*10}deg)`;
+  });
+  card.addEventListener('mouseleave',()=>{
+    card.style.transform='translateY(0) rotateX(0) rotateY(0)';
+  });
+});
 </script>
 </body>
 </html>
